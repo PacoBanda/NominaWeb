@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Calendario - Diario de Nómina</title>
+    <link rel="stylesheet" href="CSS/calendario.css" />
+    <link rel="stylesheet" href="CSS/editor-dia.css" />
+    <link rel="stylesheet" href="CSS/totales.css" />
+  </head>
+  <body>
+    <div class="calendar-container">
+      <div class="calendar-header">
+        <button
+          class="back-to-menu"
+          onclick="window.location.href = 'navegacion.html'">
+          <img
+            src="assets/volver.png"
+            alt="Volver al menú"
+            style="width: 12px; height: 10px"/>
+        </button>
+        <button id="btn-prev">ANTERIOR</button>
+        <h2 id="month-year-title">JUNIO 2026</h2>
+        <button id="btn-config-visual">⚙️</button>
+        <button id="btn-next">SIGUIENTE</button>
+      </div>
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+
+    <div class="totals-container">
+      <h3 class="totals-title">📊 Resumen y Totales Acumulados del Mes</h3>
+      <div id="totals-grid" class="totals-grid"></div>
+    </div>
+
+    <div id="modal-config" class="modal hidden">
+      <div class="modal-content">
+        <h3>Configurar Columnas (Slots)</h3>
+        <div id="config-slots-container"></div>
+        <div class="modal-actions">
+          <button id="btn-cerrar-config">Cancelar</button>
+          <button id="btn-guardar-config">Guardar Cambios</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-editor-dia" class="modal hidden">
+      <div class="modal-content modal-content-editor">
+        <h3 id="editor-date-title"></h3>
+        <div id="categories-inputs-container"></div>
+        <div class="nota-container">
+          <label>Nota:</label>
+          <textarea
+            id="input-comentario-dia"
+            placeholder="Escribe una nota..."
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button id="btn-eliminar-dia" class="btn-delete">Eliminar Día</button>
+          <button id="btn-cerrar-editor">Cancelar</button>
+          <button id="btn-guardar-dia" class="btn-save">Guardar OK</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modal-nota-completa" class="modal hidden">
+      <div class="modal-content">
+        <h3 id="modal-nota-titulo">Nota del día</h3>
+        <div id="modal-nota-texto"></div>
+      </div>
+    </div>
+
+    <script type="module" src="JS/calendario.js"></script>
+    
+  </body>
+</html>

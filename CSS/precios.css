@@ -1,0 +1,285 @@
+/* ==========================================================================
+   1. ESTILOS BASE Y CONFIGURACIÓN GLOBAL
+   ========================================================================== */
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Segoe UI", Arial, sans-serif;
+  background-color: #fcfcfc;
+  margin: 0;
+  padding: 10px;
+  color: #333;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ==========================================================================
+   2. CABECERA GENERAL Y CONTROLES SUPERIORES
+   ========================================================================== */
+.calendar-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: #fff;
+  border: 2px solid #000;
+  padding: 10px;
+  margin-bottom: 15px;
+  box-shadow: 2px 2px 0px #000;
+}
+
+.btn-toggle-brutal {
+  width: 100%;
+  max-width: 400px; /* Corrección responsiva: no desborda en móviles */
+  background: #fff;
+  border: 2px solid #000;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 10px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #000;
+  text-transform: uppercase;
+}
+
+.btn-toggle-brutal:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px #000;
+}
+
+.btn-toggle-brutal:active {
+  transform: translate(1px, 1px);
+  box-shadow: 1px 1px 0px #000;
+}
+
+/* ==========================================================================
+   3. ESTRUCTURA DE SECCIONES (BLOQUES DE PRECIO)
+   ========================================================================== */
+.seccion-precio {
+  background-color: #ffffff;
+  border: 2px solid #000;
+  padding: 0;
+  margin-bottom: 20px;
+  box-shadow: 3px 3px 0px #000;
+}
+
+.cabecera-seccion {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  gap: 10px;
+  background-color: #fafafa;
+  border-bottom: 2px solid #000;
+}
+
+.cabecera-seccion > * {
+  margin: 0 !important;
+}
+
+.banner-titulo {
+  font-weight: bold;
+  font-size: 13px;
+  padding: 6px 12px;
+  text-transform: uppercase;
+  border: 2px solid #000;
+  box-shadow: 2px 2px 0px #000;
+}
+
+.banner-titulo.fijo {
+  background-color: #d291bc; /* Pastel Brutalist Pink */
+}
+
+.banner-titulo.variable {
+  background-color: #7cd197; /* Pastel Brutalist Green */
+}
+
+/* ==========================================================================
+   4. TABLAS Y CONTENEDORES CON SCROLL
+   ========================================================================== */
+.contenedor-tabla-horizontal {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: auto;
+  max-height: 65vh;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabla-precios {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+/* Encabezado pegajoso para no perder las fechas/meses al hacer scroll vertical */
+.tabla-precios thead th {
+  position: sticky;
+  top: 0;
+  background-color: #eee;
+  z-index: 10;
+  border-bottom: 2px solid #000;
+}
+
+.tabla-precios th,
+.tabla-precios td {
+  border: 1px solid #000;
+  padding: 8px 6px;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+/* Primera columna: Conceptos alineados a la izquierda */
+.tabla-precios td:first-child {
+  text-align: left;
+  padding-left: 12px !important;
+  font-weight: bold;
+  background-color: #fff;
+  position: sticky;
+  left: 0;
+  z-index: 5;
+  border-right: 2px solid #000;
+}
+
+.tabla-precios thead th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 12;
+  border-right: 2px solid #000;
+}
+
+/* Ajustes de ancho mínimo para romper el colapso */
+.matriz {
+  min-width: 750px;
+}
+
+#Tabla_PrecioFijo {
+  width: auto !important;
+  min-width: 250px;
+}
+
+/* Columnas dinámicas de fecha */
+.tabla-precios thead th:has(.input-fecha-columna) {
+  padding: 4px !important;
+  min-width: 125px;
+}
+
+/* ==========================================================================
+   5. COMPONENTES INTERACTIVOS INTERNOS (INPUTS Y ACCIONES)
+   ========================================================================== */
+#btnAñadirFijo {
+  background: #fff;
+  border: 2px solid #000;
+  font-weight: bold;
+  padding: 6px 12px;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px #000;
+  white-space: nowrap;
+}
+
+#btnAñadirFijo:hover {
+  background: #eef200; /* Toque amarillo brutalista */
+}
+
+.input-valor-fijo,
+.input-matriz-var {
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: center;
+  width: 100%;
+  padding: 4px;
+  outline: none;
+  font-family: monospace;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Estados de foco y feedback visual al editar */
+#bloque-fijo .input-valor-fijo:focus {
+  background: #fff !important;
+  border: 1.5px solid #000 !important;
+  box-shadow: 2px 2px 0px #d291bc;
+}
+
+#bloque-variable .input-matriz-var:focus {
+  background: #fff !important;
+  border: 1.5px solid #000 !important;
+  box-shadow: 2px 2px 0px #7cd197;
+}
+
+td:hover .input-valor-fijo,
+td:hover .input-matriz-var {
+  background: #f5f5f5;
+}
+
+/* Inputs de fecha y botones de eliminación en th */
+.input-fecha-columna {
+  width: 90px;
+  font-size: 10px;
+  padding: 2px;
+  border: 1.5px solid #000;
+  font-weight: bold;
+  text-align: center;
+}
+
+.btn-eliminar-columna {
+  padding: 2px 4px;
+  font-size: 11px;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  transition: transform 0.1s ease;
+}
+
+.btn-eliminar-columna:hover {
+  transform: scale(1.2);
+}
+
+/* Ocultar las flechas arriba/abajo (spinners) en inputs numéricos */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* ==========================================================================
+   6. RESPONSIVE Y ADAPTACIONES MÓVILES
+   ========================================================================== */
+@media (max-width: 480px) {
+  body {
+    padding: 5px;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .cabecera-seccion {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .banner-titulo {
+    text-align: center;
+  }
+
+  #btnAñadirFijo {
+    width: 100%;
+    text-align: center;
+    padding: 10px;
+  }
+}

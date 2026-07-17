@@ -1,0 +1,306 @@
+/* ==========================================================================
+   1. ESTILOS GENERALES Y RESETS
+   ========================================================================== */
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    margin: 0; 
+    padding: 10px; 
+    color: #000; 
+    background-color: #fff;
+}
+
+.hidden {
+    display: none !important;
+}
+
+h2.titulo-modulo { 
+    text-align: center; 
+    font-size: 18px; 
+    border-bottom: 2px solid #000; 
+    padding-bottom: 10px; 
+    margin-top: 0;
+    flex-grow: 1;
+}
+
+/* ==========================================================================
+   2. CABECERA Y NAVEGACIÓN (NEO-BRUTALISTA)
+   ========================================================================== */
+.calendar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    width: 100%;
+    background: #fff;
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    margin-bottom: 15px;
+}
+
+.btn-toggle-brutal {
+    padding: 6px;
+    cursor: pointer;
+    border: 2px solid #000;
+    background: #fff;
+    box-shadow: 2px 2px 0px #000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.btn-toggle-brutal:active {
+    transform: translate(2px, 2px);
+    box-shadow: 0px 0px 0px #000;
+}
+
+.barra-navegacion-mes { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 20px; 
+    gap: 10px;
+}
+
+.cartel-mes-actual { 
+    margin: 0; 
+    border: 3px solid #000; 
+    padding: 8px 15px; 
+    font-size: 14px; 
+    font-weight: bold;
+    text-transform: uppercase;
+    background: #fff;
+    box-shadow: 4px 4px 0px #000;
+    flex-grow: 1;
+    text-align: center;
+}
+
+.btn-nav-brutal { 
+    background: #fff; 
+    border: 3px solid #000; 
+    font-weight: bold;
+    cursor: pointer; 
+    padding: 8px 15px; 
+    box-shadow: 3px 3px 0px #000;
+}
+
+.btn-nav-brutal:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0px #000;
+}
+
+/* ==========================================================================
+   3. MAQUETACIÓN DE TABLAS (LAYOUT FIJO NEO-BRUTALISTA)
+   ========================================================================== */
+.grid-tablas-nomina {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 12px; 
+    margin-bottom: 5px; 
+    table-layout: fixed; 
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    background: #fff;
+}
+
+th, td { 
+    border: 2px solid #000; 
+    padding: 8px 6px; 
+    overflow: hidden; 
+    white-space: nowrap; 
+    text-overflow: ellipsis;
+}
+
+th { 
+    background-color: #dfdfdf; 
+    text-align: center; 
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+/* Ajustes de columnas estrictos */
+th:nth-child(1), td:nth-child(1) { width: 50px !important; text-align: center; } 
+th:nth-child(2), td:nth-child(2) { width: auto; text-align: left; font-weight: bold; }   
+th:nth-child(3), td:nth-child(3) { width: 60px !important; text-align: center; } 
+th:nth-child(4), td:nth-child(4) { width: 80px !important; text-align: right; }  
+th:nth-child(5), td:nth-child(5) { width: 95px !important; text-align: right; font-weight: bold; }  
+
+/* Tabla específica de Bases (Suele tener solo 2 columnas) */
+#tabla-basess th:nth-child(1), #tabla-basess td:nth-child(1) { width: auto !important; text-align: left; }
+#tabla-basess th:nth-child(2), #tabla-basess td:nth-child(2) { width: 110px !important; text-align: right; }
+
+/* Banners / Subtítulos de bloques */
+.banner-subtitulo { 
+    font-weight: bold; 
+    padding: 8px; 
+    border: 3px solid #000; 
+    margin-bottom: 8px; 
+    display: block; 
+    font-size: 13px;
+    text-transform: uppercase;
+    box-shadow: 3px 3px 0px #000;
+}
+.devengo { background-color: #a3e3b9; }
+.retencion { background-color: #ffb3b3; }
+
+/* ==========================================================================
+   4. BLOQUE DE TOTALES FINALES
+   ========================================================================== */
+.bloque-totales-finales { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    padding: 12px; 
+    border: 3px solid #000; 
+    box-shadow: 5px 5px 0px #000;
+    margin: 25px 0; 
+    background: #fff;
+}
+
+.tarjeta-total-item { 
+    display: flex; 
+    justify-content: space-between; 
+    font-weight: bold; 
+    font-size: 14px;
+    padding: 4px 0;
+}
+
+.neto { 
+    background: #eef200; 
+    padding: 10px; 
+    border: 2px solid #000; 
+    font-size: 16px;
+    margin-top: 5px;
+    box-shadow: 2px 2px 0px #000;
+}
+
+/* ==========================================================================
+   5. BOTÓN ACCIÓN PRINCIPAL (CERRAR NÓMINA)
+   ========================================================================== */
+.btn-brutal-cerrar { 
+    width: 100%; 
+    padding: 16px; 
+    background: #ffcc00; 
+    border: 3px solid #000; 
+    font-weight: bold; 
+    cursor: pointer; 
+    font-size: 15px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow: 5px 5px 0px #000;
+    margin-bottom: 30px;
+    transition: transform 0.05s ease, box-shadow 0.05s ease;
+}
+
+.btn-brutal-cerrar:active {
+    transform: translate(3px, 3px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+/* ==========================================================================
+   6. MODAL DE CONFIRMACIÓN CUSTOM (NEO-BRUTALISTA)
+   ========================================================================== */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.4); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    padding: 20px;
+}
+
+.modal-brutal-box {
+    background: #fff;
+    border: 4px solid #000;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 8px 8px 0px #000;
+    padding: 0;
+    animation: popInBrutal 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modal-brutal-header {
+    background: #ffb3b3; 
+    border-bottom: 4px solid #000;
+    padding: 12px;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.modal-brutal-body {
+    padding: 22px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #000;
+    line-height: 1.5;
+    border-bottom: 4px solid #000;
+    /* Evita que textos largos rompan la caja de diálogo */
+    white-space: normal; 
+    word-break: break-word;
+}
+
+.modal-brutal-body p {
+    margin: 0;
+}
+
+.modal-brutal-actions {
+    display: flex;
+    width: 100%;
+}
+
+.btn-modal-brutal {
+    flex: 1;
+    padding: 16px;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    border: none;
+    text-transform: uppercase;
+    transition: background 0.1s ease;
+}
+
+.btn-modal-brutal.cancel {
+    background: #fff;
+    border-right: 2px solid #000;
+}
+
+.btn-modal-brutal.cancel:hover {
+    background: #f1f1f1;
+}
+
+.btn-modal-brutal.accept {
+    background: #a3e3b9; 
+    border-left: 2px solid #000;
+}
+
+.btn-modal-brutal.accept:hover {
+    background: #8cdba7;
+}
+
+.btn-modal-brutal:active {
+    background: #000;
+    color: #fff;
+}
+
+/* Animación de impacto pop in Brutalista */
+@keyframes popInBrutal {
+    0% { transform: scale(0.9) translate(4px, 4px); }
+    100% { transform: scale(1) translate(0, 0); }
+}

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Concepto Nomina</title>
+    <link rel="stylesheet" href="CSS/conceptos.css" />
+  </head>
+  <body>
+
+    <div class="calendar-header">
+    <button
+      class="back-to-menu"
+      onclick="window.location.href = 'navegacion.html'"
+    >
+     <img
+            src="assets/volver.png"
+            alt="Volver al menú"
+            style="width: 20px; height: 20px"/>
+    </button>
+
+    <h2 id="titulo-modulo" class="titulo-modulo">Conceptos Nómina</h2>
+    </div>
+
+    <div class="table-responsive">
+      <table id="tabla-conceptos">
+        <thead>
+          <tr>
+            <th>Cód.</th>
+            <th>Concepto</th>
+            <th>Clase</th>
+            <th>Cant.</th>
+            <th>Precio</th>
+            <th>Pago</th>
+            <th>X</th>
+          </tr>
+        </thead>
+        <tbody id="tbody-conceptos"></tbody>
+      </table>
+    </div>
+
+    <button id="btn-nuevo-concepto" class="btn-add-concept-yellow">
+      ➕ Añadir Concepto
+    </button>
+
+    <script type="module" src="JS/conceptos.js"></script>
+    
+  </body>
+</html>

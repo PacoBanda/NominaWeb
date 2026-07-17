@@ -1,0 +1,225 @@
+import { db, USUARIO_ID } from "./firebase-init.js";
+import {
+  collection,
+  doc,
+  setDoc,
+  deleteDoc,
+  onSnapshot,
+} from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+const state = { conceptos: [], variables: [], modoEdicion: null };
+const tbody = document.getElementById("tbody-conceptos");
+const btnNuevo = document.getElementById("btn-nuevo-concepto");
+const tituloModulo = document.getElementById("titulo-modulo");
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Listener en tiempo real para las categorías/variables de Firestore
+  onSnapshot(collection(db, "usuarios", USUARIO_ID, "categorias"), (snap) => {
+    state.variables = [];
+    snap.forEach((docSnap) => {
+      const catId = docSnap.id;
+      const catData = docSnap.data();
+      const cssClass = `cat-${catId.toLowerCase().replace(/[^a-z0-9]/g, "-")}`;
+      if (catData.opciones && Array.isArray(catData.opciones)) {
+        catData.opciones.forEach((opc) =>
+          state.variables.push({
+            id: opc.id,
+            nombre: opc.valor || opc.id,
+            categoria: cssClass,
+          }),
+        );
+      } else {
+        state.variables.push({
+          id: catId,
+          nombre: catData.nombre || catData.valor || catId,
+          categoria: cssClass,
+        });
+      }
+    });
+    renderUI();
+  });
+
+  // Listener en tiempo real para los conceptos de nómina
+  onSnapshot(
+    collection(db, "usuarios", USUARIO_ID, "ConceptosNomina"),
+    (snap) => {
+      // Definimos el orden de prioridad: Devengo > Retencion > Base
+      const ordenClases = { "Devengo": 1, "Retencion": 2, "Base": 3 };
+
+      state.conceptos = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => {
+            const prioridadA = ordenClases[a.clase] || 4;
+            const prioridadB = ordenClases[b.clase] || 4;
+            
+            if (prioridadA !== prioridadB) {
+                return prioridadA - prioridadB;
+            }
+            // Si la clase es igual, ordenamos por código de empresa
+            return (a.codigo_empresa || "").localeCompare(b.codigo_empresa || "");
+        });
+      renderUI();
+    },
+  );
+
+  btnNuevo.addEventListener("click", () => iniciarEdicion());
+  tbody.addEventListener("click", manejarClickTabla);
+});
+
+function renderUI() {
+  // Si estamos editando o creando, bloqueamos el repintado de la lista
+  // para evitar que Firestore borre los caracteres que el usuario escribe en vivo
+  if (state.modoEdicion) return;
+  
+  tituloModulo.innerHTML = "Conceptos Nómina";
+
+  tbody.innerHTML =
+    state.conceptos.length === 0
+      ? `<tr><td colspan="7" style="text-align:center;">No hay conceptos.</td></tr>`
+      : state.conceptos
+          .map((c) => {
+            const v = state.variables.find((v) => v.id === c.variable_cantidad);
+            const claseAbrev = c.clase?.charAt(0).toUpperCase() || "";
+            return `
+            <tr>
+                <td class="text-center">${c.codigo_empresa || "—"}</td>
+                <td class="font-bold clickable-concept" style="cursor:pointer;" data-id="${c.id}">${c.concepto}</td>
+                <td><span class="badge-clase-view ${c.clase?.toLowerCase()}">${claseAbrev}</span></td>
+                <td>${v ? `<span class="pill-variable ${v.categoria}">${v.nombre}</span>` : "—"}</td>
+                <td>${c.tipo_precio === "Fijo" ? "F" : "V"}</td>
+                <td>${c.forma_pago}</td>
+                <td class="text-center"><button class="btn-delete-link" data-id="${c.id}">❌</button></td>
+            </tr>`;
+          })
+          .join("");
+}
+
+function iniciarEdicion(id = null) {
+    state.modoEdicion = id || "NUEVO";
+    
+    const iconoGirar = '<span class="icono-girar">🔄</span>';
+    const textoTitulo = id ? "Editando Concepto" : "Nuevo Concepto";
+    tituloModulo.innerHTML = textoTitulo + iconoGirar;
+
+    const data = id ? state.conceptos.find(c => c.id === id) : { 
+        codigo_empresa: "", 
+        concepto: "", 
+        clase: "Devengo", 
+        variable_cantidad: state.variables[0]?.id || "", 
+        tipo_precio: "Variable", 
+        forma_pago: "Mensual" 
+    };
+
+    // Control por si el concepto es eliminado remotamente mientras se hace click
+    if (!data) {
+        alert("El concepto ya no existe.");
+        state.modoEdicion = null;
+        renderUI();
+        return;
+    }
+
+    const generarPills = (campo, opciones, valorActual) => opciones.map(op => `
+        <button type="button" class="btn-pill-brutal ${valorActual === op.id ? 'active' : ''} ${op.categoria || ''}" 
+                data-campo="${campo}" data-val="${op.id}">${op.nombre}</button>`).join('');
+
+    tbody.innerHTML = `
+        <tr class="fila-edicion-activa">
+            <td>
+                <input type="text" id="input-concepto-codigo" value="${data.codigo_empresa}" class="input-brutal-style" style="width: 40px;">
+            </td>
+            <td>
+                <input type="text" id="input-concepto-nombre" value="${data.concepto}" class="input-brutal-style" style="width: 100%; min-width: 150px;">
+            </td>
+            <td>
+                <div class="columna-vertical">
+                    ${generarPills('clase', [
+                        {id:'Devengo', nombre:'Devengo'}, 
+                        {id:'Retencion', nombre:'Retención'}, 
+                        {id:'Base', nombre:'Base'}
+                    ], data.clase)}
+                </div>
+            </td>
+            <td>
+                
+                <div class="columna-vertical">
+                    ${generarPills('variable_cantidad', state.variables, data.variable_cantidad)}
+                </div>
+            </td>
+            <td>
+                <div class="columna-vertical">
+                    ${generarPills('tipo_precio', [
+                        {id:'Fijo', nombre:'Fijo'}, 
+                        {id:'Variable', nombre:'Variable'}
+                    ], data.tipo_precio)}
+                </div>
+            </td>
+            <td>
+                <div class="columna-vertical">
+                    ${generarPills('forma_pago', [
+                        {id:'Mensual', nombre:'Mensual'}, 
+                        {id:'Junio', nombre:'Junio'}, 
+                        {id:'Diciembre', nombre:'Diciembre'}
+                    ], data.forma_pago)}
+                </div>
+            </td>
+            <td class="contenedor-acciones-edicion">
+                <div class="columna-vertical">
+                    <button id="btn-guardar-inline" class="btn-guardar-brutal" style="width: 100%;">Save</button>
+                    <button id="btn-cancelar-inline" class="btn-cancelar-brutal" style="width: 100%;">Salir</button>
+                </div>
+            </td>
+        </tr>`;
+
+    // Asignación de lógica para los botones alternables (Pills)
+    document.querySelectorAll('.btn-pill-brutal').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const campo = e.target.dataset.campo;
+            document.querySelectorAll(`.btn-pill-brutal[data-campo="${campo}"]`).forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+        });
+    });
+
+    document.getElementById("btn-guardar-inline").addEventListener("click", guardarConcepto);
+    document.getElementById("btn-cancelar-inline").addEventListener("click", () => { 
+        state.modoEdicion = null; 
+        renderUI(); 
+    });
+}
+
+async function guardarConcepto() {
+  const getPillValue = (campo) =>
+    document.querySelector(`.btn-pill-brutal[data-campo="${campo}"].active`)
+      ?.dataset.val || "";
+      
+  const datosGuardar = {
+    codigo_empresa: document.getElementById("input-concepto-codigo").value,
+    concepto: document.getElementById("input-concepto-nombre").value,
+    clase: getPillValue("clase"),
+    variable_cantidad: getPillValue("variable_cantidad"),
+    tipo_precio: getPillValue("tipo_precio"),
+    forma_pago: getPillValue("forma_pago"),
+  };
+
+  if (!datosGuardar.concepto) return alert("El nombre es obligatorio");
+  
+  const id = state.modoEdicion === "NUEVO" ? `C_N_${Date.now()}` : state.modoEdicion;
+  
+  await setDoc(
+    doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id),
+    datosGuardar,
+  );
+  
+  state.modoEdicion = null;
+  renderUI();
+}
+
+function manejarClickTabla(e) {
+  if (e.target.classList.contains("btn-delete-link"))
+    eliminarConcepto(e.target.dataset.id);
+  if (e.target.classList.contains("clickable-concept"))
+    iniciarEdicion(e.target.dataset.id);
+}
+
+async function eliminarConcepto(id) {
+  if (confirm("¿Eliminar?"))
+    await deleteDoc(doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id));
+}

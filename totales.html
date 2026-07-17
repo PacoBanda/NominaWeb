@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resumen de Totales</title>
+    <link rel="stylesheet" href="CSS/totales.css">
+</head>
+<body>
+
+    <div class="totals-container">
+        <h3 class="totals-title">📊 Resumen y Totales Acumulados del Mes</h3>
+        
+        <div id="totals-grid" class="totals-grid">
+            <p class="no-data-text">Esperando datos para calcular...</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { renderizarTotales } from './JS/totales.js';
+        
+        /* EJEMPLO DE INTEGRACIÓN:
+           Cuando tu script principal (calendario.js) tenga listos los datos, 
+           puede llamar a la función de esta manera:
+           
+           renderizarTotales(datosMesActual, categoriesConfig);
+        */
+    </script>
+    <script type="module" src="JS/login.js"></script>
+</body>
+</html>

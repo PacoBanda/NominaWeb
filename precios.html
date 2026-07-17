@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración de Precios</title>
+    <link rel="stylesheet" href="CSS/precios.css" />
+  </head>
+  <body>
+
+    <div class="calendar-header">
+    <button
+      class="btn-toggle-brutal"
+      onclick="window.location.href = 'navegacion.html'"
+    >
+     <img
+            src="assets/volver.png"
+            alt="Volver al menú"
+            style="width: 12px; height: 10px"/>
+    </button>
+
+    <button id="btn-toggle-fijo" class="btn-toggle-brutal">
+      Mostrar/Ocultar Precios Fijos
+    </button>
+    </div>
+
+    <div class="seccion-precio hidden" id="bloque-fijo">
+      <!-- Contenedor flex para alinear título y botón -->
+      <div class="cabecera-seccion">
+        <div class="banner-titulo fijo">PRECIOS FIJOS (CONVENIO)</div>
+        <button
+          id="btnAñadirFijo"
+          class="btn-toggle-brutal"
+          style="width: auto; padding: 5px 15px"
+        >
+          ➕ Añadir Fecha
+        </button>
+      </div>
+
+      <div class="contenedor-tabla-horizontal">
+        <table class="tabla-precios" id="Tabla_PrecioFijo">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPrecioFijo"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="seccion-precio" id="bloque-variable">
+      <div class="banner-titulo variable">PRECIOS VARIABLES (CONVENIO)</div>
+      <div class="formulario-precio"></div>
+      <div class="contenedor-tabla-horizontal">
+        <table class="tabla-precios matriz" id="Tabla_PrecioVariable">
+          <thead>
+            <tr>
+              <th>Concepto</th>
+              <th>Ene</th>
+              <th>Feb</th>
+              <th>Mar</th>
+              <th>Abr</th>
+              <th>May</th>
+              <th>Jun</th>
+              <th>Jul</th>
+              <th>Ago</th>
+              <th>Sep</th>
+              <th>Oct</th>
+              <th>Nov</th>
+              <th>Dic</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyPrecioVariable"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <script type="module" src="JS/precios.js"></script>
+    <script type="module" src="JS/login.js"></script>
+  </body>
+</html>

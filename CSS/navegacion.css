@@ -1,0 +1,167 @@
+/* ==========================================================================
+   ESTILOS DEL MENÚ PRINCIPAL (BRUTALISTA)
+   ========================================================================== */
+
+/* Contenedor principal del grid */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columnas fijas */
+    gap: 16px;
+    margin-top: 20px;
+}/* ==========================================================================
+   ESTILOS DEL MENÚ PRINCIPAL (BRUTALISTA)
+   ========================================================================== */
+
+/* Contenedor principal del grid */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr); /* 2 columnas fijas */
+    gap: 16px;
+    margin-top: 20px;
+}
+
+/* Botón de navegación */
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 3px solid #000000;
+    padding: 20px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 14px;
+    color: #000000;
+    box-shadow: 6px 6px 0px #000000; /* Efecto brutalista */
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+/* Interacción al pasar el mouse */
+.nav-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0px #000000;
+}
+
+/* Tamaño de los iconos en el menú */
+.nav-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+    pointer-events: none; /* Evita que el SVG interfiera con el clic */
+}
+
+/* Botón de cerrar sesión */
+.btn-logout {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    background: #000000;
+    color: #ffffff;
+    border: 3px solid #000000;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn-logout:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* Botón Volver */
+.back-to-menu {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: 2px solid #000000;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 800;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+}
+
+.back-to-menu:hover {
+    background: #eeeeee;
+}
+
+/* Utilidad para ocultar pantallas */
+.hidden { 
+    display: none !important; 
+}
+
+/* Botón de navegación */
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 3px solid #000000;
+    padding: 20px;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 14px;
+    color: #000000;
+    box-shadow: 6px 6px 0px #000000; /* Efecto brutalista */
+    transition: all 0.1s ease;
+    text-transform: uppercase;
+    text-decoration: none;
+}
+
+/* Interacción al pasar el mouse */
+.nav-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0px #000000;
+}
+
+/* Tamaño de los iconos en el menú */
+.nav-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+    pointer-events: none; /* Evita que el SVG interfiera con el clic */
+}
+
+/* Botón de cerrar sesión */
+.btn-logout {
+    width: 100%;
+    margin-top: 30px;
+    padding: 14px;
+    background: #000000;
+    color: #ffffff;
+    border: 3px solid #000000;
+    font-weight: 800;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+
+.btn-logout:hover {
+    background: #ffffff;
+    color: #000000;
+}
+
+/* Botón Volver */
+.back-to-menu {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: 2px solid #000000;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 800;
+    margin-bottom: 20px;
+    transition: background 0.2s;
+}
+
+.back-to-menu:hover {
+    background: #eeeeee;
+}
+
+/* Utilidad para ocultar pantallas */
+.hidden { 
+    display: none !important; 
+}

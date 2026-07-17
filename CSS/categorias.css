@@ -1,0 +1,269 @@
+/* === ESTILOS GLOBALES NEO-BRUTALISTAS COMPACTOS === */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+/* ==========================================================================
+   2. CABECERA
+   ========================================================================== */
+.calendar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 10px;
+    width: 100%;
+    background: #fff;
+    border: 2px solid #000;
+    margin-bottom: 10px;
+}
+
+
+
+
+/* Contenedor Principal Ajustado al Contenido */
+.main-container {
+    width: fit-content;
+    background: #ffffff;
+    border: 3px solid #000000;
+    padding: 15px;
+    box-shadow: 5px 5px 0px #000000;
+    box-sizing: border-box;
+}
+
+h2.titulo-modulo {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border-bottom: 3px solid #000000;
+    padding-bottom: 8px;
+    letter-spacing: 0.5px;
+}
+
+/* Rejilla adaptada a 2 Columnas */
+.grid-columnas {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 15px;
+    align-items: start;
+    justify-content: center;
+    max-width: 850px; 
+    width: 100%;
+}
+
+/* Contenedor vertical para apilar Cantidad y Fórmulas */
+.bloque-vertical-izquierdo {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+/* Columnas Maestras Redimensionadas */
+.columna-maestra {
+    border: 3px solid #000000;
+    padding: 12px;
+    box-shadow: 3px 3px 0px #000000;
+    min-height: 480px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.col-azul { background-color: #e3f2fd; }
+.col-rosa { background-color: #fce4ec; }
+.col-verde { background-color: #e8f5e9; }
+
+.columna-titulo {
+    margin-top: 0;
+    font-size: 11px;
+    text-transform: uppercase;
+    border-bottom: 2px solid #000000;
+    padding-bottom: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Contenedores para apilar las cards blancas */
+.lista-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+/* === CARDS BLANCAS REDUCIDAS === */
+.card {
+    background-color: #ffffff;
+    border: 2.5px solid #000000;
+    padding: 10px;
+    box-shadow: 3px 3px 0px #000000;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+}
+
+.category-title, .formula-card-title {
+    font-size: 13px;
+    margin: 0;
+    font-weight: bold;
+}
+
+/* Listas de elementos internos reducidas */
+.elements-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+.element-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 8px;
+    border: 1.5px solid #000000;
+    font-weight: bold;
+    font-size: 11px;
+}
+
+/* Formulario oculto inline compacto */
+.inline-form-add {
+    border: 1.5px dashed #000000;
+    padding: 8px;
+    margin-top: 8px;
+    background: #fafafa;
+}
+
+/* Paleta de colores rápidos */
+.color-presets-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.color-box-preset {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid #000000;
+    cursor: pointer;
+    box-shadow: 1px 1px 0px #000000;
+    box-sizing: border-box;
+    transition: transform 0.05s;
+}
+
+.color-box-preset.selected-preset {
+    outline: 2px solid #000000;
+    outline-offset: 1.5px;
+    transform: scale(1.1);
+}
+
+.color-box-preset:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0px 0px 0px #000000;
+}
+
+/* Botón de borrado de Tarjetas */
+.btn-delete-card {
+    margin-top: 10px;
+    color: #cc0000;
+    font-weight: bold;
+    font-size: 10px;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-align: right;
+    user-select: none;
+}
+.btn-delete-card:hover {
+    text-decoration: underline;
+}
+
+/* === CAJONES CREADORES INFERIORES REDUCIDOS === */
+.cajon-creador-inferior {
+    background: #ffffff;
+    border: 2px solid #000000;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 15px;
+    box-shadow: 2px 2px 0px #000000;
+    box-sizing: border-box;
+}
+
+.cajon-creador-inferior label {
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    color: #000000;
+}
+
+input[type="text"], input[type="number"], select {
+    padding: 5px;
+    border: 1.5px solid #000000;
+    font-weight: bold;
+    font-size: 11px;
+    font-family: inherit;
+}
+
+.btn-add-concept-yellow {
+    background: #eef200; 
+    color: #000000;
+    border: 2px solid #000000;
+    font-weight: bold;
+    font-size: 11px;
+    padding: 6px 12px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #000000;
+    transition: transform 0.05s, box-shadow 0.05s;
+}
+.btn-add-concept-yellow:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px #000000;
+}
+/* 🚀 MÁXIMA SEPARACIÓN PARA LOS BOTONES "X" Y "OK" */
+.inline-form-add div[style*="justify-content: flex-end"],
+.element-item div[style*="justify-content: flex-end"] {
+    display: flex !important;
+    gap: 16px !important;       /* Duplicamos el espacio entre X y OK */
+    margin-top: 10px !important; /* Más separación respecto a la paleta de colores */
+}
+
+/* Opcional: Un extra de tamaño a los botones para mejorar el Neo-Brutalism */
+.inline-form-add button,
+.element-item button {
+    padding: 3px 10px !important; /* Los hace un pelín más anchos y cómodos */
+}
+
+/* --- BOTÓN VOLVER NEO-BRUTALISTA --- */
+.back-to-menu {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 2px solid #000000;
+    padding: 6px;
+    cursor: pointer;
+    box-shadow: 2px 2px 0px #000000;
+    transition: transform 0.05s, box-shadow 0.05s;
+}
+
+.back-to-menu:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px #000000;
+}
+
+/* --- CENTRADO GLOBAL DEL CONTENIDO --- */
+#app-container {
+    max-width: 850px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}

@@ -1,0 +1,173 @@
+/* ==========================================================================
+   1. BASE Y LAYOUT
+   ========================================================================== */
+* { 
+    box-sizing: border-box; 
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f5f5f5;
+    margin: 0;
+    padding: 2px;
+    color: #000;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ==========================================================================
+   2. CABECERA
+   ========================================================================== */
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 4px;
+    padding: 10px;
+    width: 100%;
+    background: #fff;
+    border: 2px solid #000;
+    margin-bottom: 10px;
+}
+
+.calendar-header button {
+    padding: 6px 6px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    border: 1.5px solid #000;
+    background: #fff;
+}
+
+#month-year-title {
+    margin: 0 10px;
+    font-size: 1.1rem;
+    text-transform: uppercase;
+}
+
+/* ==========================================================================
+   3. CONTENEDORES PRINCIPALES (Ancho completo)
+   ========================================================================== */
+.calendar-container, .totals-container {
+    width: 100%;
+    background: #fff;
+    padding: 0px;
+    border: 1px solid #000;
+    margin-bottom: 6px;
+}
+
+#calendar-grid {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    border-top: 2px solid #000;
+}
+
+/* ==========================================================================
+   4. GRILLA DEL CALENDARIO (CORREGIDA)
+   ========================================================================== */
+.day-row {
+    display: grid;
+    /* Por defecto: 5 columnas (Día texto, Día número, Slot 1, Slot 2, Slot 3) */
+    grid-template-columns: 25px 25px repeat(3, 1fr); 
+    border-bottom: 1px solid #000;
+    align-items: stretch;
+    min-height: 45px;
+}
+
+/* Cuando se activa la columna de notas mediante JS, la grilla pasa a tener 6 columnas automáticamente */
+.day-row.show-notes {
+    grid-template-columns: 25px 25px repeat(3, 1fr) 100px;
+}
+
+.day-label, .day-num, .day-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 11px;
+    border-left: 1px solid #000;
+    padding: 2px;
+}
+
+.day-col:last-child { 
+    border-right: 1px solid #000; 
+}
+
+.day-col {
+    flex-direction: column; 
+    padding: 2px 4px;
+}
+
+.day-col > div {
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Notas (Última columna) */
+.day-col.day-col-nota {
+    display: block !important; 
+    text-align: left !important;
+    padding: 5px;
+    color: #666;
+    font-style: italic;
+    white-space: normal; 
+    word-break: break-word;
+    max-height: 50px;
+    overflow-y: auto;
+}
+
+/* ==========================================================================
+   5. ESTILOS DE ESTADO Y COLORES
+   ========================================================================== */
+.day-row.con-tipo .day-label, 
+.day-row.con-tipo .day-num { 
+    background-color: var(--color-tipo) !important; 
+}
+
+.day-row.con-tipo { 
+    background-color: color-mix(in srgb, var(--color-tipo) 10%, transparent); 
+}
+
+.day-row.con-turno { 
+    background-color: color-mix(in srgb, var(--color-turno) 15%, transparent) !important; 
+}
+
+.sabado { 
+    background-color: #e3f2fd; 
+}
+
+.domingo { 
+    background-color: #f3e5f5; 
+}
+
+/* ==========================================================================
+   6. MODALES
+   ========================================================================== */
+.modal {
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    width: 100%; 
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden { 
+    display: none; 
+}
+
+.modal-content {
+    background: #fff; 
+    padding: 25px; 
+    border: 3px solid #000;
+    width: 90%; 
+    max-width: 500px;
+}

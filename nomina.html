@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resumen de Nómina</title>
+    <link rel="stylesheet" href="CSS/nomina.css" />
+  </head>
+  <body>
+
+    <div class="calendar-header">
+      <button
+        class="btn-toggle-brutal"
+        onclick="window.location.href = 'navegacion.html'"
+      >
+        <img
+          src="assets/volver.png"
+          alt="Volver al menú"
+          style="width: 20px; height: 20px"/>
+      </button>
+
+      <h2 class="titulo-modulo">📊 CÁLCULO DE NÓMINA</h2>
+    </div>
+
+    <div class="barra-navegacion-mes">
+      <button id="btn-mes-anterior" class="btn-nav-brutal">
+        &lt; Anterior
+      </button>
+      <h3 id="titulo-mes-anio-nomina" class="cartel-mes-actual">Cargando...</h3>
+      <button id="btn-mes-siguiente" class="btn-nav-brutal">
+        Siguiente &gt;
+      </button>
+    </div>
+
+    <div class="grid-tablas-nomina">
+      <div class="bloque-financiero col-devengos">
+        <div class="banner-subtitulo devengo">
+          ➕ Devengos (Conceptos Salariales)
+        </div>
+        <table id="tabla-devengos">
+          <thead>
+            <tr>
+              <th style="width: 50px">Cód.</th>
+              <th>Concepto</th>
+              <th style="width: 60px">Cant.</th>
+              <th style="width: 80px">Precio</th>
+              <th style="width: 90px">Total</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-devengos"></tbody>
+        </table>
+      </div>
+
+      <div class="bloque-financiero col-retenciones">
+        <div class="banner-subtitulo retencion">
+          ➖ Retenciones y Deducciones
+        </div>
+        <table id="tabla-retenciones">
+          <thead>
+            <tr>
+              <th style="width: 50px">Cód.</th>
+              <th>Concepto</th>
+              <th style="width: 60px">Cant.</th>
+              <th style="width: 80px">Precio</th>
+              <th style="width: 90px">Total</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-retenciones"></tbody>
+        </table>
+      </div>
+
+      <div class="bloque-financiero col-bases">
+        <div class="banner-subtitulo retencion">Bases</div>
+        <table id="tabla-basess">
+          <thead>
+            <tr>
+              <th>Concepto Base</th>
+              <th style="width: 100px">Valor</th>
+            </tr>
+          </thead>
+          <tbody id="tbody-bases"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bloque-totales-finales">
+      <div class="tarjeta-total-item">
+        <span>Bruto:</span> <span id="txt-total-bruto">0.00 €</span>
+      </div>
+      <div class="tarjeta-total-item">
+        <span>Deducir:</span> <span id="txt-total-deducciones">0.00 €</span>
+      </div>
+      <div class="tarjeta-total-item neto">
+        <span>NETO:</span> <span id="txt-total-neto">0.00 €</span>
+      </div>
+    </div>
+
+    <button id="btn-cerrar-nomina" class="btn-brutal-cerrar">
+      🔒 CERRAR NÓMINA
+    </button>
+
+    <!-- Modal de Confirmación Neo-Brutalista -->
+    <div id="custom-confirm-modal" class="modal-backdrop hidden">
+      <div class="modal-brutal-box">
+        <div class="modal-brutal-header">⚠️ CONFIRMACIÓN CRÍTICA</div>
+        <div class="modal-brutal-body">
+          <p id="custom-confirm-message">¿Seguro que deseas realizar esta acción?</p>
+        </div>
+        <div class="modal-brutal-actions">
+          <button id="btn-confirm-cancel" class="btn-modal-brutal cancel">CANCELAR</button>
+          <button id="btn-confirm-accept" class="btn-modal-brutal accept">ACEPTAR</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="JS/nomina.js"></script>
+    <script type="module" src="JS/login.js"></script>
+  </body>
+</html>

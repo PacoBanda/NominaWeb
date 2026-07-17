@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mi Agenda de Trabajo</title>  
+    <link rel="stylesheet" href="./CSS/navegacion.css" />
+  </head>
+  <body>
+    <div id="app-container">
+  
+      <div class="menu-grid">
+    <button class="nav-btn" onclick="window.location.href='calendario.html'">
+        <img src="assets/calendario.svg" class="nav-icon" /> CALENDARIO
+    </button>
+    
+    <button class="nav-btn" onclick="window.location.href='precios.html'">
+        <img src="assets/precios.svg" class="nav-icon" /> PRECIOS
+    </button>
+    
+    <button class="nav-btn" onclick="window.location.href='nomina.html'">
+        <img src="assets/nomina.svg" class="nav-icon" /> NÓMINA
+    </button>
+    
+    <button class="nav-btn" onclick="window.location.href='categorias.html'">
+        <img src="assets/categorias.svg" class="nav-icon" /> CATEGORIAS
+    </button>
+    
+    <button class="nav-btn" onclick="window.location.href='conceptos.html'">
+        <img src="assets/conceptos.svg" class="nav-icon" /> CONCEPTOS
+    </button>
+</div>
+        <button id="logout-btn" class="btn-logout">Cerrar Sesión</button>
+      </div>
+
+
+    <script type="module" src="JS/login.js"></script>
+  </body>
+</html>

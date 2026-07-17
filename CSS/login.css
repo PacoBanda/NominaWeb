@@ -1,0 +1,141 @@
+/* --- VARIABLES --- */
+:root {
+    --primary-color: #1E88E5;
+    --bg-color: #F8F9FA;
+    --text-main: #202124;
+    --text-sec: #5F6368;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* --- ESTRUCTURA GENERAL --- */
+body {
+    font-family: 'Roboto', system-ui, sans-serif;
+    background-color: var(--bg-color);
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centrado vertical */
+    min-height: 100vh;
+}
+
+#app-container {
+    width: 100%;
+    max-width: 420px;
+    padding: 16px;
+}
+
+.card {
+    background: white;
+    padding: 32px 24px;
+    border-radius: 28px;
+    box-shadow: var(--card-shadow);
+    text-align: center;
+    width: 100%;
+}
+
+/* --- FORMULARIOS --- */
+input {
+    width: 100%;
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid #DADCE0;
+    border-radius: 12px;
+    font-size: 16px;
+}
+
+button#main-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 100px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+/* --- MENÚ BRUTALISTA --- */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+
+.nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 3px solid #000000;
+    padding: 20px;
+    cursor: pointer;
+    font-weight: 800;
+    box-shadow: 6px 6px 0px #000000;
+    transition: all 0.1s;
+    color: #000;
+}
+
+.nav-btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 4px 4px 0px #000000;
+}
+
+.nav-icon {
+    width: 50px;
+    height: 50px;
+    margin-bottom: 10px;
+}
+
+/* --- CALENDARIO --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); 
+    gap: 4px;
+    background: white;
+    padding: 16px;
+    border-radius: 24px;
+    box-shadow: var(--card-shadow);
+    align-items: center;
+}
+
+#calendarDays { display: contents; }
+
+.day-card {
+    aspect-ratio: 1 / 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.day-card.selected {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* --- BOTONES Y UTILIDADES --- */
+.btn-logout {
+    width: 100%;
+    margin-top: 30px;
+    padding: 12px;
+    background: #fdf2f2;
+    border: 1px solid #f5c6cb;
+    color: #d93025;
+    border-radius: 12px;
+    cursor: pointer;
+}
+
+.back-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.hidden { display: none !important; }

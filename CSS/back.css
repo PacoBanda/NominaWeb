@@ -1,0 +1,46 @@
+.navegacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 20px;
+    border-bottom: 2px solid #000;
+    background: #fff;
+}
+
+#btn-config-visual {
+    background: #ffffff;
+    border: 2px solid #000000;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-weight: 800;
+    box-shadow: 4px 4px 0px #000000;
+}
+
+#btn-config-visual:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000000;
+}
+
+.nav-title {
+    font-family: 'Georgia', serif; 
+    font-style: italic;           
+    font-size: 1.2rem;            
+    color: #000000;              
+    font-weight: normal;         
+    margin: 0 50px;               
+}
+
+.back-icon {
+    width: 24px;   
+    height: 24px;
+    display: block;
+    pointer-events: none; 
+}
+
+
+.back-to-menu {
+    padding: 8px; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

@@ -1,0 +1,270 @@
+/* ==========================================================================
+   1. BASE Y LAYOUT (Mobile-first, sin contenedor)
+   ========================================================================== */
+*, *:before, *:after { 
+  box-sizing: border-box; 
+}
+
+body {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 2px;
+  display: flex;
+  flex-direction: column;
+  width: 100vw;
+}
+
+h2.titulo-modulo {
+  margin: 0;
+  font-size: 18px;
+  border-bottom: 3px solid #000;
+  padding: 10px;
+  text-transform: uppercase;
+  background: #fff;
+}
+
+/* ==========================================================================
+   2. CABECERA
+   ========================================================================== */
+.calendar-header {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    padding: 10px;
+    width: 100%;
+    background: #fff;
+    border: 2px solid #000;
+    margin-bottom: 10px;
+}
+
+/* ==========================================================================
+   3. TABLA - AJUSTE DINÁMICO
+   ========================================================================== */
+.table-responsive { 
+  width: 100%; 
+  overflow-x: auto; 
+}
+
+table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    margin-top: 10px; 
+    font-size: 11px; 
+}
+
+th, td { 
+    border: 2px solid #000; 
+    padding: 6px 4px; 
+    text-align: center; 
+    vertical-align: middle; 
+}
+
+/* --- LÓGICA DE COLUMNAS --- */
+
+/* 1. Código de Empresa */
+#tabla-conceptos th:nth-child(1), 
+#tabla-conceptos td:nth-child(1) {
+    min-width: 40px; 
+    width: 40px;
+    padding: 6px 2px;
+}
+
+/* 2. Concepto (Texto largo) */
+#tabla-conceptos th:nth-child(2), 
+#tabla-conceptos td:nth-child(2) { 
+    text-align: left; 
+    white-space: normal; /* Permite el salto de línea */
+    min-width: 100px;    
+    max-width: 300px;    
+}
+
+/* 3. Cant, Precio, Pago (Ajustados al contenido numérico) */
+#tabla-conceptos th:nth-child(3), #tabla-conceptos td:nth-child(3),
+#tabla-conceptos th:nth-child(4), #tabla-conceptos td:nth-child(4),
+#tabla-conceptos th:nth-child(5), #tabla-conceptos td:nth-child(5),
+#tabla-conceptos th:nth-child(6), #tabla-conceptos td:nth-child(6) {
+    width: 1%;           
+    white-space: nowrap; 
+}
+
+/* 4. Columna de Acciones (X) - Modo Lectura */
+#tabla-conceptos th:last-child, 
+#tabla-conceptos td:last-child { 
+    width: 30px; 
+    padding: 4px 2px; 
+}
+
+/* 5. Ajuste de Acciones - Modo Edición */
+.fila-edicion-activa td:last-child {
+    width: auto !important;
+    min-width: 85px; /* Espacio suficiente para que no se aplasten Save y Salir */
+    vertical-align: middle;
+}
+
+/* ==========================================================================
+   4. COMPONENTES: BOTONES Y PILLS
+   ========================================================================== */
+.btn-pill-brutal {
+    display: block;
+    width: 100%;
+    padding: 6px 8px; 
+    font-size: 11px;
+    font-weight: bold;
+    border: 1.5px solid #000;
+    background: #fff;
+    cursor: pointer;
+}
+
+.btn-pill-brutal.active { background: #000; color: #fff; }
+.btn-pill-brutal:hover { transform: translate(-1px, -1px); box-shadow: 2px 2px 0px #000; }
+
+/* Rejilla automática para botones de cantidad (Sin scroll) */
+.grid-pills-cantidad {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(65px, 1fr));
+  gap: 3px;
+  width: 100%;
+  min-width: 200px;
+}
+
+.btn-pill-brutal[data-campo="variable_cantidad"] {
+  font-size: 9px;
+  padding: 2px 2px;
+  width: 100%;
+  min-width: 50px;
+}
+
+/* Colores de Clase (Edición) */
+[data-val="Devengo"] { border-color: #00a65a; color: #00a65a; }
+[data-val="Devengo"].active { background: #00a65a; color: #fff; }
+
+[data-val="Retencion"] { border-color: #dd4b39; color: #dd4b39; }
+[data-val="Retencion"].active { background: #dd4b39; color: #fff; }
+
+[data-val="Base"] { border-color: #0073b7; color: #0073b7; }
+[data-val="Base"].active { background: #0073b7; color: #fff; }
+
+/* ==========================================================================
+   5. BADGES (Modo Lectura)
+   ========================================================================== */
+.badge-clase-view {
+  display: inline-block;
+  padding: 2px 6px;
+  border: 1.5px solid #000;
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.badge-clase-view.devengo { background: #e2f7ed; color: #006633; border-color: #00a65a; }
+.badge-clase-view.retencion { background: #fce8e6; color: #a82315; border-color: #dd4b39; }
+.badge-clase-view.base { background: #e8f0fe; color: #1a53ff; border-color: #0073b7; }
+
+/* ==========================================================================
+   6. ACCIONES Y ESTILOS BRUTALISTAS
+   ========================================================================== */
+.btn-delete-link { 
+  background: none; 
+  border: none; 
+  cursor: pointer; 
+  font-size: 14px; 
+  padding: 0; 
+}
+.btn-delete-link:hover { transform: scale(1.3); }
+
+.btn-guardar-brutal { 
+  background: #eef200; 
+  border: 2px solid #000; 
+  font-weight: bold; 
+  padding: 4px 8px; 
+  text-transform: uppercase; 
+  cursor: pointer; 
+}
+
+.btn-cancelar-brutal { 
+  background: #fff; 
+  border: 2px solid #000; 
+  color: #cc0000; 
+  font-weight: bold; 
+  padding: 4px 8px; 
+  text-transform: uppercase; 
+  cursor: pointer; 
+}
+
+.fila-edicion-activa .btn-guardar-brutal,
+.fila-edicion-activa .btn-cancelar-brutal {
+    box-shadow: 2px 2px 0px #000;
+    margin-bottom: 2px;
+}
+
+.btn-add-concept-yellow {
+  width: calc(100% - 20px);
+  margin: 15px auto;
+  background: #eef200;
+  border: 2.5px solid #000;
+  font-weight: bold;
+  padding: 12px;
+  box-shadow: 3px 3px 0px #000;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.input-brutal-style { 
+  border: 1.5px solid #000; 
+  padding: 4px; 
+  width: 100%; 
+  font-weight: bold; 
+}
+
+.pill-variable { 
+  padding: 2px 6px; 
+  border: 1px solid #000; 
+  font-size: 11px; 
+}
+
+/* Colores dinámicos de categorías de Firestore */
+.cat-c-pluses { background: #ffd700; }
+.cat-c-sistema { background: #add8e6; }
+.cat-s-complementos { background: #90ee90; }
+
+/* Contenedor que fuerza el apilado vertical */
+.columna-vertical {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    width: 100%;
+    min-width: 90px; 
+}
+
+/* Ajuste estructural para la fila activa */
+.fila-edicion-activa td {
+    display: table-cell;
+    vertical-align: top;
+    padding: 4px;
+}
+
+/* ==========================================================================
+   7. DETECCIÓN DE ORIENTACIÓN (UX)
+   ========================================================================== */
+@media (orientation: portrait) {
+    .icono-girar {
+        display: inline-block;
+        margin-left: 10px;
+        font-size: 14px;
+        animation: rotar 2s infinite;
+    }
+}
+
+@media (orientation: landscape) {
+    .icono-girar { 
+      display: none; 
+    }
+}
+
+@keyframes rotar {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+    100% { transform: rotate(0deg); }
+}

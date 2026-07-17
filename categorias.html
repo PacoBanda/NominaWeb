@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Configuración de Variables - Nómina</title>
+    <link rel="stylesheet" href="CSS/categorias.css" />
+  </head>
+  <body>
+
+    <div class="calendar-header">
+    <button
+          class="back-to-menu"
+          onclick="window.location.href = 'navegacion.html'">
+          <img
+            src="assets/volver.png"
+            alt="Volver al menú"
+            style="width: 20px; height: 20px"/>
+        </button>
+
+    <h2 class="titulo-modulo">CONFIGURACIÓN DE VARIABLES</h2>
+    </div>
+
+    <div class="grid-columnas">
+      <div class="bloque-vertical-izquierdo">
+        <div class="columna-maestra col-azul">
+          <div>
+            <h3 class="columna-titulo">📊 Cantidad de sumar</h3>
+            <div id="lista-cantidad" class="lista-cards-container"></div>
+          </div>
+        </div>
+
+        <div class="columna-maestra col-verde">
+          <div>
+            <h3 class="columna-titulo">🧮 Fórmulas Matemáticas</h3>
+            <div id="lista-formulas" class="lista-cards-container"></div>
+          </div>
+
+          <div class="cajon-creador-inferior">
+            <label for="new-title-formula">Nueva Fórmula:</label>
+            <input
+              type="text"
+              id="new-title-formula"
+              placeholder="Ej: Precio Hora..."
+            />
+            <button
+              onclick="crearNuevaFormula('new-title-formula')"
+              class="btn-add-concept-yellow"
+            >
+              Añadir Fórmula ➕
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="columna-maestra col-rosa">
+        <div>
+          <h3 class="columna-titulo">⏹️ Complementos de Contar</h3>
+          <div id="lista-contar" class="lista-cards-container"></div>
+        </div>
+
+        <div class="cajon-creador-inferior">
+          <label for="new-title-contar">Nueva Categoría de Contar:</label>
+          <input
+            type="text"
+            id="new-title-contar"
+            placeholder="Ej: Pluses, Dietas..."
+          />
+          <button
+            onclick="crearNuevaCategoriaContar('new-title-contar')"
+            class="btn-add-concept-yellow"
+          >
+            Añadir Categoría ➕
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="JS/categorias.js"></script>
+    
+  </body>
+</html>
