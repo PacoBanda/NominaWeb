@@ -160,11 +160,15 @@ function activarEscuchadorCategorias() {
           dataTarjetaCantidad.data,
         ),
       );
-    docsContar.forEach((docItem) =>
+    // CÓDIGO MODIFICADO:
+    docsContar.forEach((docItem) => {
+      // Si el ID corresponde a la lista del sistema, no la añadimos al contenedor visual
+      if (docItem.id === ID_CONTAR_SISTEMA) return;
+
       listaContarContainer.appendChild(
         crearTarjetaCategoriaDOM(docItem.id, docItem.data),
-      ),
-    );
+      );
+    });
     docsFormulas.forEach((docItem) =>
       listaFormulasContainer.appendChild(
         crearTarjetaFormulaDOM(
@@ -245,10 +249,10 @@ function crearTarjetaCategoriaDOM(id, categoria) {
 
     const claveEdicionUnica = `${id}_${opc.id}`;
     if (idElementoEnEdicion === claveEdicionUnica) {
-  item.style.backgroundColor = "#ffffff";
-  item.style.color = "#000000";
-  item.style.border = "2px dashed #000000";
-  item.innerHTML = `<div style="display: flex; flex-direction: column; gap: 4px; padding: 2px 0;" onclick="event.stopPropagation();">
+      item.style.backgroundColor = "#ffffff";
+      item.style.color = "#000000";
+      item.style.border = "2px dashed #000000";
+      item.innerHTML = `<div style="display: flex; flex-direction: column; gap: 4px; padding: 2px 0;" onclick="event.stopPropagation();">
     <input type="text" class="edit-input-name" style="padding: 2px 4px; font-size: 11px; font-weight: bold; border: 1.5px solid #000; width: 100%; box-sizing: border-box;">
     ${esTarjetaTurnos ? `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px;"><input type="time" class="edit-input-inicio" value="${opc.horaInicio || "00:00"}" style="padding: 1px 2px; font-size: 10px; font-weight: bold; border: 1.5px solid #000;"><input type="time" class="edit-input-fin" value="${opc.horaFin || "00:00"}" style="padding: 1px 2px; font-size: 10px; font-weight: bold; border: 1.5px solid #000;"></div><input type="number" step="0.01" class="edit-input-horas" value="${opc.totalHoras || 0}" style="padding: 2px 4px; font-size: 10px; font-weight: bold; border: 1.5px solid #000; width: 100%; box-sizing: border-box;">` : ""}
     
@@ -288,49 +292,55 @@ function crearTarjetaCategoriaDOM(id, categoria) {
       // ... dentro de tu bloque donde creas el modo edición (idElementoEnEdicion === claveEdicionUnica) ...
 
       item.querySelector(".btn-save-edit-item").onclick = async (e) => {
-    e.stopPropagation();
-    const nuevoNombre = item.querySelector(".edit-input-name").value.trim();
-    
-    // Validamos que el nombre no esté vacío
-    if (!nuevoNombre) return;
+        e.stopPropagation();
+        const nuevoNombre = item.querySelector(".edit-input-name").value.trim();
 
-    // --- LÓGICA DE VALIDACIÓN PARA EDICIÓN ---
-    // Buscamos si existe OTRO elemento con el mismo nombre, 
-    // pero que NO sea el que estamos editando actualmente (o.id !== opc.id)
-    const existe = (categoria.opciones || []).some(
-        (o) => o.valor.toLowerCase() === nuevoNombre.toLowerCase() && o.id !== opc.id
-    );
+        // Validamos que el nombre no esté vacío
+        if (!nuevoNombre) return;
 
-    // Asegúrate de tener este elemento en el HTML del modo edición
-    const errorDiv = item.querySelector(".error-msg-edit"); 
+        // --- LÓGICA DE VALIDACIÓN PARA EDICIÓN ---
+        // Buscamos si existe OTRO elemento con el mismo nombre,
+        // pero que NO sea el que estamos editando actualmente (o.id !== opc.id)
+        const existe = (categoria.opciones || []).some(
+          (o) =>
+            o.valor.toLowerCase() === nuevoNombre.toLowerCase() &&
+            o.id !== opc.id,
+        );
 
-    if (existe) {
-        // Visualizamos el error si el nombre está duplicado
-        if (errorDiv) errorDiv.style.display = "block";
-        item.querySelector(".edit-input-name").style.border = "1.5px solid #cc0000";
-        return; // Detenemos la ejecución aquí
-    }
-    // -----------------------------------------------
+        // Asegúrate de tener este elemento en el HTML del modo edición
+        const errorDiv = item.querySelector(".error-msg-edit");
 
-    // Si llega aquí, la validación pasó. Recuperamos los datos actualizados.
-    const nuevoColor = item.querySelector(".edit-input-color").value;
-    let datosActualizados = { 
-        ...opc, 
-        valor: nuevoNombre, 
-        color: nuevoColor 
-    };
-    
-    // Si la tarjeta es de turnos, capturamos los nuevos valores
-    if (esTarjetaTurnos) {
-        datosActualizados.horaInicio = item.querySelector(".edit-input-inicio").value || "00:00";
-        datosActualizados.horaFin = item.querySelector(".edit-input-fin").value || "00:00";
-        datosActualizados.totalHoras = parseFloat(item.querySelector(".edit-input-horas").value) || 0;
-    }
+        if (existe) {
+          // Visualizamos el error si el nombre está duplicado
+          if (errorDiv) errorDiv.style.display = "block";
+          item.querySelector(".edit-input-name").style.border =
+            "1.5px solid #cc0000";
+          return; // Detenemos la ejecución aquí
+        }
+        // -----------------------------------------------
 
-    // Cerramos el modo edición y guardamos en Firebase
-    idElementoEnEdicion = null;
-    await guardarCambiosElemento(id, opc.id, datosActualizados);
-};
+        // Si llega aquí, la validación pasó. Recuperamos los datos actualizados.
+        const nuevoColor = item.querySelector(".edit-input-color").value;
+        let datosActualizados = {
+          ...opc,
+          valor: nuevoNombre,
+          color: nuevoColor,
+        };
+
+        // Si la tarjeta es de turnos, capturamos los nuevos valores
+        if (esTarjetaTurnos) {
+          datosActualizados.horaInicio =
+            item.querySelector(".edit-input-inicio").value || "00:00";
+          datosActualizados.horaFin =
+            item.querySelector(".edit-input-fin").value || "00:00";
+          datosActualizados.totalHoras =
+            parseFloat(item.querySelector(".edit-input-horas").value) || 0;
+        }
+
+        // Cerramos el modo edición y guardamos en Firebase
+        idElementoEnEdicion = null;
+        await guardarCambiosElemento(id, opc.id, datosActualizados);
+      };
     } else {
       let detallesHorario =
         esTarjetaTurnos && opc.horaInicio
