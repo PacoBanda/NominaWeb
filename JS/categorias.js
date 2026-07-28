@@ -1,4 +1,5 @@
 // JS/categorias.js
+import { mostrarConfirmacionCustom } from "./modal.js";
 import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
   collection,
@@ -622,29 +623,42 @@ window.crearNuevaFormula = async function (inputId) {
 };
 
 async function eliminarElemento(categoriaId, elementoId) {
+  const confirmado = await mostrarConfirmacionCustom(
+    "¿Seguro que deseas eliminar este elemento?",
+    "⚠️ ELIMINAR ELEMENTO"
+  );
+  if (!confirmado) return;
+
   const docRef = doc(db, "usuarios", USUARIO_ID, "categorias", categoriaId);
   try {
     const docSnap = await getDoc(docRef);
-    if (docSnap.exists())
+    if (docSnap.exists()) {
       await updateDoc(docRef, {
         opciones: (docSnap.data().opciones || []).filter(
-          (opc) => opc.id !== elementoId,
+          (opc) => opc.id !== elementoId
         ),
       });
+    }
   } catch (e) {
-    console.error(e);
+    console.error("Error al eliminar elemento:", e);
   }
 }
 
+// CÓDIGO NUEVO
 async function eliminarCategoria(categoriaId) {
-  if (confirm("¿Seguro que quieres eliminar esta categoría?")) {
-    try {
-      await deleteDoc(
-        doc(db, "usuarios", USUARIO_ID, "categorias", categoriaId),
-      );
-    } catch (e) {
-      console.error(e);
-    }
+  const confirmado = await mostrarConfirmacionCustom(
+    "¿Seguro que quieres eliminar esta categoría?",
+    "⚠️ ELIMINAR CATEGORÍA"
+  );
+
+  if (!confirmado) return;
+
+  try {
+    await deleteDoc(
+      doc(db, "usuarios", USUARIO_ID, "categorias", categoriaId)
+    );
+  } catch (e) {
+    console.error("Error al eliminar categoría:", e);
   }
 }
 
