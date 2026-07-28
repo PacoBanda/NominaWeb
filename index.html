@@ -5,22 +5,47 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mi Agenda de Trabajo</title>
     <link rel="stylesheet" href="./CSS/login.css" />
-    
   </head>
   <body>
     <div id="app-container">
-      
       <div id="auth-screen" class="card">
-        <h1>Bienvenido</h1>
+        <h1 id="auth-title">Bienvenido</h1>
+        
         <form id="auth-form">
-          <input type="email" id="email" placeholder="Correo" required />
-          <input type="password" id="password" placeholder="Contraseña" required />
+          <!-- Campo de Nombre (Oculto por defecto en inicio de sesión) -->
+          <input 
+            type="text" 
+            id="nombre" 
+            placeholder="Nombre completo" 
+            class="hidden" 
+          />
+
+          <input 
+            type="email" 
+            id="email" 
+            placeholder="Correo" 
+            required 
+          />
+          
+          <input 
+            type="password" 
+            id="password" 
+            placeholder="Contraseña" 
+            required 
+          />
+          
           <button type="submit" id="main-btn">Entrar</button>
         </form>
+        
+        <!-- Botón para alternar entre Login y Registro -->
+        <button 
+          id="toggle-auth-btn" 
+          style="background: none; border: none; margin-top: 15px; color: var(--primary-color); cursor: pointer; text-decoration: underline;"
+        >
+          ¿No tienes cuenta? Regístrate aquí
+        </button>
       </div>
-
-      
-    
+    </div>
 
     <script type="module" src="JS/login.js"></script>
   </body>

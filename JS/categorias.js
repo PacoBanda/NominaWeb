@@ -1,5 +1,5 @@
 // JS/categorias.js
-import { db, USUARIO_ID } from "./firebase-init.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
   collection,
   doc,
@@ -10,16 +10,26 @@ import {
   getDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-// --- CONSTANTES ---
+// --- ESTADO ---
+let USUARIO_ID = null; 
+let idFormulaEnEdicion = null;
+let idElementoEnEdicion = null;
+
+// --- CONSTANTES DE TARJETAS SISTEMA (Añadir estas líneas) ---
 const ID_TARJETA_SUMAR_FIJA = "S_complementos";
 const ID_CONTAR_SISTEMA = "C_sistema";
 const ID_CONTAR_TURNOS = "C_turnos";
 const ID_CONTAR_TIPODIA = "C_tipodia";
 
-// --- ESTADO ---
-let idFormulaEnEdicion = null;
-let idElementoEnEdicion = null;
-activarEscuchadorCategorias();
+// Inicializamos el módulo
+iniciarModulo();
+
+async function iniciarModulo() {
+  USUARIO_ID = await obtenerUsuarioActual();
+  if (USUARIO_ID) {
+    activarEscuchadorCategorias();
+  }
+}
 
 function activarEscuchadorCategorias() {
   const colRef = collection(db, "usuarios", USUARIO_ID, "categorias");
