@@ -16,7 +16,7 @@ const state = {
   modoEdicion: null // null | 'NUEVO' | id_concepto
 };
 
-// Referencias al DOM (Asegúrate de que estos IDs existen en tu HTML)
+// Referencias al DOM
 let tbody;
 let btnNuevo;
 let tituloModulo;
@@ -25,8 +25,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   USUARIO_ID = await obtenerUsuarioActual();
   if (!USUARIO_ID) return;
 
-  // Inicialización de elementos del DOM
-  tbody = document.querySelector("#TablaConceptos tbody") || document.querySelector("tbody");
+  // Inicialización de elementos del DOM con selectores corregidos
+  tbody = document.getElementById("tbody-conceptos");
   btnNuevo = document.getElementById("btn-nuevo-concepto");
   tituloModulo = document.getElementById("titulo-modulo");
 
@@ -60,7 +60,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   onSnapshot(
     collection(db, "usuarios", USUARIO_ID, "ConceptosNomina"),
     (snap) => {
-      // Definimos el orden de prioridad: Devengo > Retencion > Base
       const ordenClases = { "Devengo": 1, "Retencion": 2, "Base": 3 };
 
       state.conceptos = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -71,7 +70,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (prioridadA !== prioridadB) {
                 return prioridadA - prioridadB;
             }
-            // Si la clase es igual, ordenamos por código de empresa
             return (a.codigo_empresa || "").localeCompare(b.codigo_empresa || "");
         });
       renderUI();
@@ -85,8 +83,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 function renderUI() {
   if (!tbody || !tituloModulo) return;
 
-  // Si estamos editando o creando, bloqueamos el repintado de la lista
-  // para evitar que Firestore borre los caracteres que el usuario escribe en vivo
   if (state.modoEdicion) return;
   
   tituloModulo.innerHTML = "Conceptos Nómina";
@@ -117,9 +113,8 @@ function iniciarEdicion(id = null) {
 
     state.modoEdicion = id || "NUEVO";
     
-    //const iconoGirar = '<span class="icono-girar">🔄</span>';
     const textoTitulo = id ? "Editando Concepto" : "Nuevo Concepto";
-    tituloModulo.innerHTML = textoTitulo + iconoGirar;
+    tituloModulo.innerHTML = textoTitulo;
 
     const data = id ? state.conceptos.find(c => c.id === id) : { 
         codigo_empresa: "", 
@@ -130,7 +125,6 @@ function iniciarEdicion(id = null) {
         forma_pago: "Mensual" 
     };
 
-    // Control por si el concepto es eliminado remotamente mientras se hace click
     if (!data) {
         alert("El concepto ya no existe.");
         state.modoEdicion = null;
@@ -189,7 +183,6 @@ function iniciarEdicion(id = null) {
             </td>
         </tr>`;
 
-    // Asignación de lógica para los botones alternables (Pills)
     document.querySelectorAll('.btn-pill-brutal').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const campo = e.target.dataset.campo;
@@ -210,19 +203,29 @@ async function guardarConcepto() {
     document.querySelector(`.btn-pill-brutal[data-campo="${campo}"].active`)
       ?.dataset.val || "";
       
+  const conceptoTexto = document.getElementById("input-concepto-nombre")?.value || "";
+
+  if (!conceptoTexto) return alert("El nombre es obligatorio");
+
+  const idNombreBase = conceptoTexto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  const id = state.modoEdicion === "NUEVO" ? `C_N_${idNombreBase}` : state.modoEdicion;
+
   const datosGuardar = {
     codigo_empresa: document.getElementById("input-concepto-codigo")?.value || "",
-    concepto: document.getElementById("input-concepto-nombre")?.value || "",
+    concepto: conceptoTexto,
     clase: getPillValue("clase"),
     variable_cantidad: getPillValue("variable_cantidad"),
     tipo_precio: getPillValue("tipo_precio"),
     forma_pago: getPillValue("forma_pago"),
   };
 
-  if (!datosGuardar.concepto) return alert("El nombre es obligatorio");
-  
-  const id = state.modoEdicion === "NUEVO" ? `C_N_${Date.now()}` : state.modoEdicion;
-  
   try {
     await setDoc(
       doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id),
