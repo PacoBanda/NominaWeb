@@ -113,18 +113,24 @@ function activarEscuchadorCategorias() {
           seleccionMultiple: false,
           opciones: [
             {
-              id: "C_E_dia_natural",
+              id: "C_S_dia_natural",
               valor: "Dia_Natural",
               color: "#cc0000",
-              visible: true,
-              posicion: 1,
             },
             {
-              id: "C_E_dias_mes",
+              id: "C_S_dias_mes",
               valor: "Dias_Mes",
               color: "#cc0000",
-              visible: true,
-              posicion: 2,
+            },
+            {
+              id: "C_S_total_devengado",
+              valor: "Total Devengado",
+              color: "#cc0000",
+            },
+            {
+              id: "C_S_cantidad_1",
+              valor: "Cantidad 1",
+              color: "#cc0000",
             },
           ],
         },
@@ -416,9 +422,7 @@ function crearTarjetaCategoriaDOM(id, categoria) {
     const prefijoPadre = id.substring(0, 2);
     const sufijo = Math.random().toString(36).substr(2, 9);
     const idElementoBase = valorLimpio.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    const idNuevoElemento = esTarjetaTurnos
-      ? `${prefijoPadre}E_${idElementoBase}`
-      : `${prefijoPadre}E_${sufijo}`;
+    const idNuevoElemento = `${prefijoPadre}E_${idElementoBase}`;
 
     let datosElemento = {
       id: idNuevoElemento,

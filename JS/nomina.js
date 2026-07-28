@@ -1,16 +1,17 @@
-// JS/nomina.js
-import { db, USUARIO_ID } from "./firebase-init.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
-  collection,
   doc,
-  getDocs,
   getDoc,
-  query,
-  orderBy,
-  where,
-  limit,
+  getDocs,
   setDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+let USUARIO_ID = null;
 
 // --- ESTADO GLOBAL ---
 let SISTEMA_VARIABLES = {
@@ -27,6 +28,17 @@ const fechaHoy = new Date();
 const anioActual = fechaHoy.getFullYear();
 const mesActual = String(fechaHoy.getMonth() + 1).padStart(2, "0");
 let periodoActual = `${anioActual}_${mesActual}`; 
+
+document.addEventListener("DOMContentLoaded", async () => {
+  USUARIO_ID = await obtenerUsuarioActual();
+  if (!USUARIO_ID) return;
+
+  ejecutarMotorCalculo(periodoActual);
+
+  document.getElementById("btn-mes-anterior")?.addEventListener("click", () => cambiarPeriodo(-1));
+  document.getElementById("btn-mes-siguiente")?.addEventListener("click", () => cambiarPeriodo(1));
+  document.getElementById("btn-cerrar-nomina")?.addEventListener("click", () => cerrarNomina(periodoActual));
+});
 
 // --- FUNCIONES DE APOYO ---
 async function obtenerPrecioFijo(idConcepto, fechaPeriodo) {
@@ -66,7 +78,6 @@ function configurarUI(estaCerrada) {
   }
 }
 
-// --- PROMISE INTERMEDIA PARA EL MODAL PERSONALIZADO ---
 function mostrarConfirmacionCustom(mensaje) {
   return new Promise((resolve) => {
     const modal = document.getElementById("custom-confirm-modal");
@@ -139,7 +150,6 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       ...doc.data(),
     }));
 
-    // Reordenamos: primero Devengos, luego Bases y Retenciones
     conceptos.sort((a, b) => {
       const claseA = (a.clase || "").toLowerCase();
       const claseB = (b.clase || "").toLowerCase();
@@ -148,7 +158,6 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       return 0;
     });
 
-    // OPTIMIZACIÓN: Cargar todos los precios en paralelo antes de iterar
     const promesasPrecios = conceptos.map(c => 
       c.tipo_precio === "Variable"
         ? obtenerPrecioVariable(c.id, anio, mesInt)
@@ -303,12 +312,3 @@ function renderizarDesdeCierre(data, idDoc) {
   if (tbodyRet && tbodyRet.children.length === 0) tbodyRet.innerHTML = `<tr><td colspan="5" class="no-data">Sin retenciones registradas</td></tr>`;
   if (tbodyBase && tbodyBase.children.length === 0) tbodyBase.innerHTML = `<tr><td colspan="2" class="no-data">Sin bases registradas</td></tr>`;
 }
-
-// --- INICIALIZACIÓN ---
-document.addEventListener("DOMContentLoaded", () => {
-  ejecutarMotorCalculo(periodoActual);
-
-  document.getElementById("btn-mes-anterior")?.addEventListener("click", () => cambiarPeriodo(-1));
-  document.getElementById("btn-mes-siguiente")?.addEventListener("click", () => cambiarPeriodo(1));
-  document.getElementById("btn-cerrar-nomina")?.addEventListener("click", () => cerrarNomina(periodoActual));
-});

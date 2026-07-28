@@ -1,4 +1,3 @@
-// JS/firebase-init.js
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
@@ -16,15 +15,19 @@ const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
 
-// Función para obtener dinámicamente el UID del usuario que ha iniciado sesión
+// Función sincrónica global para obtener el id actual
+export let USUARIO_ID = null;
+
+// Obtiene el UID esperando a Firebase Authentication
 export function obtenerUsuarioActual() {
     return new Promise((resolve) => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             unsubscribe();
             if (user) {
+                USUARIO_ID = user.uid;
                 resolve(user.uid);
             } else {
-                // Si no hay sesión iniciada, redirigir al login
+                // Redirigir al login si no hay sesión activa
                 window.location.href = "index.html";
                 resolve(null);
             }
