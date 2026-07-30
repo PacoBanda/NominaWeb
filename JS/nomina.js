@@ -1,26 +1,26 @@
-// JS/nomina.js
-import { db, USUARIO_ID } from "./firebase-init.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
-  collection,
   doc,
-  getDocs,
   getDoc,
-  query,
-  orderBy,
-  where,
-  limit,
+  getDocs,
   setDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  limit
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+let USUARIO_ID = null;
 
 // --- ESTADO GLOBAL ---
 let SISTEMA_VARIABLES = {
   C_S_cantidad_1: 1,
   C_S_dias_mes: 30,
   C_S_dia_natural: 1,
-  C_S_total_devengado: 0, // Se actualizará en caliente durante el cálculo
+  C_S_total_devengado: 0,
 };
 
-// Variable para el "Snapshot" estructurado en memoria limpia
 let snapshotNominaActual = { items: [], totales: {} };
 
 // --- CÁLCULO DINÁMICO DEL PERIODO ACTUAL ---
@@ -29,8 +29,18 @@ const anioActual = fechaHoy.getFullYear();
 const mesActual = String(fechaHoy.getMonth() + 1).padStart(2, "0");
 let periodoActual = `${anioActual}_${mesActual}`; 
 
-// --- FUNCIONES DE APOYO ---
+document.addEventListener("DOMContentLoaded", async () => {
+  USUARIO_ID = await obtenerUsuarioActual();
+  if (!USUARIO_ID) return;
 
+  ejecutarMotorCalculo(periodoActual);
+
+  document.getElementById("btn-mes-anterior")?.addEventListener("click", () => cambiarPeriodo(-1));
+  document.getElementById("btn-mes-siguiente")?.addEventListener("click", () => cambiarPeriodo(1));
+  document.getElementById("btn-cerrar-nomina")?.addEventListener("click", () => cerrarNomina(periodoActual));
+});
+
+// --- FUNCIONES DE APOYO ---
 async function obtenerPrecioFijo(idConcepto, fechaPeriodo) {
   try {
     const q = query(
@@ -68,7 +78,6 @@ function configurarUI(estaCerrada) {
   }
 }
 
-// --- PROMISE INTERMEDIA PARA EL MODAL PERSONALIZADO ---
 function mostrarConfirmacionCustom(mensaje) {
   return new Promise((resolve) => {
     const modal = document.getElementById("custom-confirm-modal");
@@ -81,7 +90,6 @@ function mostrarConfirmacionCustom(mensaje) {
     msgElem.textContent = mensaje;
     modal.classList.remove("hidden");
 
-    // Manejadores limpios sin romper referencias de nodos
     const alAceptar = () => finaliza(true);
     const alCancelar = () => finaliza(false);
 
@@ -98,14 +106,12 @@ function mostrarConfirmacionCustom(mensaje) {
 }
 
 // --- MOTOR PRINCIPAL ---
-
 async function ejecutarMotorCalculo(idDoc = periodoActual) {
   try {
     periodoActual = idDoc; 
     const docRefCierre = doc(db, "usuarios", USUARIO_ID, "NominasCerradas", idDoc);
     const snapCierre = await getDoc(docRefCierre);
 
-    // Si el mes ya fue cerrado, cargamos el histórico directo de forma inmutable
     if (snapCierre.exists()) {
       renderizarDesdeCierre(snapCierre.data(), idDoc);
       configurarUI(true);
@@ -117,10 +123,9 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
     const mesInt = parseInt(mes);
     const diasDelMes = new Date(parseInt(anio), mesInt, 0).getDate();
     
-    // Sincronizamos las variables de tiempo del sistema
     SISTEMA_VARIABLES.C_S_dias_mes = diasDelMes;
     SISTEMA_VARIABLES.C_S_dia_natural = diasDelMes;
-    SISTEMA_VARIABLES.C_S_total_devengado = 0; // Reset inicial
+    SISTEMA_VARIABLES.C_S_total_devengado = 1;
 
     const tbodyDev = document.getElementById("tbody-devengos");
     const tbodyRet = document.getElementById("tbody-retenciones");
@@ -135,7 +140,6 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       getDoc(doc(db, "usuarios", USUARIO_ID, "diario", idDoc)),
     ]);
 
-    // Unificamos el mapa de totales diarios y del sistema
     const totales = {
       ...(docDiario.exists() ? docDiario.data().valoresTotales : {}),
       ...SISTEMA_VARIABLES,
@@ -146,13 +150,6 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       ...doc.data(),
     }));
 
-    const cachePrecios = new Map();
-    let bruto = 0,
-      deducciones = 0;
-    snapshotNominaActual.items = [];
-
-    // Pasada 1: Calcular Devengos primero para alimentar las Bases y Retenciones que dependan del bruto acumulado
-    // Ordenamos inteligentemente: Primero Devengos, luego el resto
     conceptos.sort((a, b) => {
       const claseA = (a.clase || "").toLowerCase();
       const claseB = (b.clase || "").toLowerCase();
@@ -161,32 +158,28 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       return 0;
     });
 
-    for (const c of conceptos) {
-      // --- LÓGICA DE FORMA DE PAGO ---
-      const pago = (c.forma_pago || "Mensual").toLowerCase();
-      if (pago === "junio" && mesInt !== 6) continue;
-      if (pago === "diciembre" && mesInt !== 12) continue;
+    const promesasPrecios = conceptos.map(c => 
+      c.tipo_precio === "Variable"
+        ? obtenerPrecioVariable(c.id, anio, mesInt)
+        : obtenerPrecioFijo(c.id, `${anio}-${mes}-01`)
+    );
+    const preciosResueltos = await Promise.all(promesasPrecios);
 
-      // Actualizar dinámicamente C_S_total_devengado por si un concepto posterior (Base/Retención) lo requiere
+    let bruto = 0, deducciones = 0;
+    snapshotNominaActual.items = [];
+
+    conceptos.forEach((c, i) => {
+      const pago = (c.forma_pago || "Mensual").toLowerCase();
+      if (pago === "junio" && mesInt !== 6) return;
+      if (pago === "diciembre" && mesInt !== 12) return;
+
       totales.C_S_total_devengado = bruto;
 
-      // AUDITORÍA: Protección estricta contra variables no existentes o limpiadas a 0
       const cant = totales[c.variable_cantidad] || 0;
-      
-      if (!cachePrecios.has(c.id)) {
-        cachePrecios.set(
-          c.id,
-          c.tipo_precio === "Variable"
-            ? await obtenerPrecioVariable(c.id, anio, mesInt)
-            : await obtenerPrecioFijo(c.id, `${anio}-${mes}-01`),
-        );
-      }
-      
-      const precio = cachePrecios.get(c.id);
+      const precio = preciosResueltos[i] || 0;
       const subtotal = cant * precio;
       
-      // --- FILTRO: Ocultar conceptos con resultado 0 ---
-      if (subtotal === 0) continue;
+      if (subtotal === 0) return;
 
       const clase = (c.clase || "").toString().trim().toLowerCase();
       const nombre = (c.concepto || "").trim();
@@ -220,7 +213,7 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
         tbodyDev?.insertAdjacentHTML("beforeend", fila);
         bruto += subtotal;
       }
-    }
+    });
 
     snapshotNominaActual.totales = {
       bruto,
@@ -228,13 +221,11 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       neto: bruto - deducciones,
     };
 
-    // Actualización de la UI con formato uniforme
     if(document.getElementById("txt-total-bruto")) document.getElementById("txt-total-bruto").textContent = `${bruto.toFixed(2)} €`;
     if(document.getElementById("txt-total-deducciones")) document.getElementById("txt-total-deducciones").textContent = `${deducciones.toFixed(2)} €`;
     if(document.getElementById("txt-total-neto")) document.getElementById("txt-total-neto").textContent = `${(bruto - deducciones).toFixed(2)} €`;
     if(document.getElementById("titulo-mes-anio-nomina")) document.getElementById("titulo-mes-anio-nomina").textContent = `PERIODO: ${idDoc.replace("_", "/")}`;
     
-    // Manejo visual de tablas vacías por estética Neo-Brutalista
     if (tbodyDev && tbodyDev.children.length === 0) tbodyDev.innerHTML = `<tr><td colspan="5" class="no-data">Sin devengos en este periodo</td></tr>`;
     if (tbodyRet && tbodyRet.children.length === 0) tbodyRet.innerHTML = `<tr><td colspan="5" class="no-data">Sin retenciones en este periodo</td></tr>`;
     if (tbodyBase && tbodyBase.children.length === 0) tbodyBase.innerHTML = `<tr><td colspan="2" class="no-data">Sin bases de cotización</td></tr>`;
@@ -244,12 +235,8 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
   }
 }
 
-// --- CIERRE INMUTABLE ---
-
 export async function cerrarNomina(periodo) {
   const periodoFormateado = periodo.replace("_", "/");
-  
-  // Llamamos al modal seguro
   const confirmado = await mostrarConfirmacionCustom(`¿Cerrar nómina de ${periodoFormateado}? Los datos serán inmutables, aunque cambies datos en el calendario.`);
   if (!confirmado) return;
 
@@ -269,8 +256,6 @@ export async function cerrarNomina(periodo) {
   }
 }
 
-// --- NAVEGACIÓN ENTRE MESES ---
-
 function cambiarPeriodo(direccion) {
     const [anio, mes] = periodoActual.split("_").map(Number);
     let nuevoMes = mes + direccion;
@@ -282,8 +267,6 @@ function cambiarPeriodo(direccion) {
     periodoActual = `${nuevoAnio}_${nuevoMes.toString().padStart(2, '0')}`;
     ejecutarMotorCalculo(periodoActual);
 }
-
-// --- RENDERIZADO DESDE HISTÓRICO CERRADO ---
 
 function renderizarDesdeCierre(data, idDoc) {
   const tbodyDev = document.getElementById("tbody-devengos");
@@ -325,18 +308,7 @@ function renderizarDesdeCierre(data, idDoc) {
   
   if(document.getElementById("titulo-mes-anio-nomina")) document.getElementById("titulo-mes-anio-nomina").textContent = `PERIODO CERRADO: ${idDoc.replace("_", "/")}`;
   
-  // Validaciones de contenido vacío en modo histórico
   if (tbodyDev && tbodyDev.children.length === 0) tbodyDev.innerHTML = `<tr><td colspan="5" class="no-data">Sin devengos registrados</td></tr>`;
   if (tbodyRet && tbodyRet.children.length === 0) tbodyRet.innerHTML = `<tr><td colspan="5" class="no-data">Sin retenciones registradas</td></tr>`;
   if (tbodyBase && tbodyBase.children.length === 0) tbodyBase.innerHTML = `<tr><td colspan="2" class="no-data">Sin bases registradas</td></tr>`;
 }
-
-// --- INICIALIZACIÓN ---
-
-document.addEventListener("DOMContentLoaded", () => {
-  ejecutarMotorCalculo(periodoActual);
-
-  document.getElementById("btn-mes-anterior")?.addEventListener("click", () => cambiarPeriodo(-1));
-  document.getElementById("btn-mes-siguiente")?.addEventListener("click", () => cambiarPeriodo(1));
-  document.getElementById("btn-cerrar-nomina")?.addEventListener("click", () => cerrarNomina(periodoActual));
-});

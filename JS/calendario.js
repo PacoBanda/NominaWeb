@@ -1,28 +1,28 @@
-// JS/prueba-calendario.js
-import { db, USUARIO_ID } from "./firebase-init.js";
-import { renderizarTotales } from "./totales.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
-  collection,
-  doc,
   onSnapshot,
+  doc,
+  setDoc,
+  collection
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-import { guardarConfiguracionSlots } from "./configuracion-visual.js";
 
+// IMPORTS NECESARIOS DE OTROS MÓDULOS (Asegúrate de tener estos archivos)
 import { abrirEditorDia } from "./editor-dia.js";
+import { renderizarTotales } from "./totales.js";
 
 // --- ESTADO GLOBAL ---
-let fechaActual = new Date();
-let categoriesConfig = {};
+let USUARIO_ID = null;
+let mapaSlotsConfig = {};
 let datosMesActual = {};
-let mapaSlotsConfig = {
-  slot_1: "",
-  slot_2: "",
-  slot_3: "",
-  slot_nota: "false",
-};
+let categoriesConfig = {};
 let desvincularEscuchadorMes = null;
+let fechaActual = new Date();
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  USUARIO_ID = await obtenerUsuarioActual();
+  if (!USUARIO_ID) return;
+
+  // Botones de Navegación y Configuración
   document.getElementById("btn-prev").onclick = cambiarMesAnterior;
   document.getElementById("btn-next").onclick = cambiarMesSiguiente;
   document.getElementById("btn-config-visual").onclick = abrirModalConfig;
@@ -41,7 +41,7 @@ function escucharConfiguracion() {
       mapaSlotsConfig = docSnap.exists() ? docSnap.data() : mapaSlotsConfig;
       if (Object.keys(datosMesActual).length > 0)
         actualizarPantallaCompleta(); 
-    },
+    }
   );
 }
 
@@ -50,11 +50,11 @@ function escucharCategorias() {
     collection(db, "usuarios", USUARIO_ID, "categorias"),
     (snapshot) => {
       categoriesConfig = {};
-      snapshot.forEach((doc) => {
-        categoriesConfig[doc.id] = doc.data();
+      snapshot.forEach((docSnap) => {
+        categoriesConfig[docSnap.id] = docSnap.data();
       });
       escucharDatosMesActual();
-    },
+    }
   );
 }
 
@@ -74,6 +74,7 @@ function cambiarMesAnterior() {
   fechaActual.setMonth(fechaActual.getMonth() - 1);
   escucharDatosMesActual();
 }
+
 function cambiarMesSiguiente() {
   fechaActual.setMonth(fechaActual.getMonth() + 1);
   escucharDatosMesActual();
@@ -81,25 +82,22 @@ function cambiarMesSiguiente() {
 
 function abrirModalConfig() {
   const container = document.getElementById("config-slots-container");
+  if (!container) return;
   container.innerHTML = "";
 
-  // 1. Slots de categorías
   const slotsConfigurables = ["slot_1", "slot_2", "slot_3"];
   slotsConfigurables.forEach((key, index) => {
     let options = `<option value="">-- Vacío --</option>`;
     
-    // Filtramos solo las categorías que empiezan por C_ o son S_complementos
     Object.keys(categoriesConfig).forEach((catId) => {
       const esValida = catId.startsWith("C_") || catId === "S_complementos";
       
       if (esValida) {
         const selected = mapaSlotsConfig[key] === catId ? "selected" : "";
-        // Usamos catId para el valor, y el nombre de la categoría para mostrarlo
         options += `<option value="${catId}" ${selected}>${categoriesConfig[catId].nombre}</option>`;
       }
     });
 
-    // Añadimos el selector al contenedor
     container.innerHTML += `
       <div style="margin-bottom:10px;">
         Slot ${index + 1}: 
@@ -107,7 +105,6 @@ function abrirModalConfig() {
       </div>`;
   });
 
-  // 2. Selector para mostrar/ocultar Notas
   const isNotaChecked = mapaSlotsConfig.slot_nota === "true" ? "checked" : "";
   container.innerHTML += `
         <div style="margin-top:20px; border-top:1px solid #ccc; padding-top:10px;">
@@ -117,28 +114,36 @@ function abrirModalConfig() {
             </label>
         </div>`;
 
-  document.getElementById("modal-config").classList.remove("hidden");
+  document.getElementById("modal-config")?.classList.remove("hidden");
 }
+
 async function guardarConfig() {
   const nuevoMapa = {};
   document
     .querySelectorAll(".slot-select")
     .forEach((el) => (nuevoMapa[el.id] = el.value));
 
-  // Guardamos si la nota está activada
-  nuevoMapa.slot_nota = document.getElementById("check-slot-nota").checked
+  nuevoMapa.slot_nota = document.getElementById("check-slot-nota")?.checked
     ? "true"
     : "false";
 
-  await guardarConfiguracionSlots(nuevoMapa);
+  // Guardado directo en Firestore
+  try {
+    await setDoc(doc(db, "usuarios", USUARIO_ID, "configuracion", "visual"), nuevoMapa);
+  } catch (err) {
+    console.error("Error al guardar la configuración:", err);
+  }
+
   mapaSlotsConfig = nuevoMapa;
-  document.getElementById("modal-config").classList.add("hidden");
+  document.getElementById("modal-config")?.classList.add("hidden");
   renderizarCalendarioCompleto();
 }
+
 function renderizarCalendarioCompleto() {
   const listContainer = document.getElementById("calendar-grid");
   const title = document.getElementById("month-year-title");
-  
+  if (!listContainer || !title) return;
+
   const daysInMonth = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
   title.innerText = `${fechaActual.toLocaleString("es-ES", { month: "long" }).toUpperCase()} ${fechaActual.getFullYear()}`;
   listContainer.innerHTML = "";
@@ -150,7 +155,6 @@ function renderizarCalendarioCompleto() {
     const d = new Date(fechaActual.getFullYear(), fechaActual.getMonth(), i);
     const datosDia = datosMesActual[i] || {};
     
-    // ... (Lógica de colores se mantiene igual)
     let colorTurno = null;
     const catTurnos = categoriesConfig["C_turnos"];
     if (datosDia["C_turnos"] && catTurnos?.opciones) {
@@ -185,20 +189,17 @@ function renderizarCalendarioCompleto() {
         const categoria = categoriesConfig[catId];
 
         if (catId.startsWith("S_")) {
-
-          // --- NUEVA LÓGICA: S_ SE TRUNCA A 9 sustituyendo a 9---
           contenido = Object.entries(valGuardado)
             .filter(([_, cant]) => cant > 0)
             .map(([id, cant]) => {
-              const opc = categoria.opciones.find(o => o.id === id);
+              const opc = categoria.opciones?.find(o => o.id === id);
               if (!opc) return "";
               const nombre = opc.valor;
-              const truncado = nombre.length > 9 ? nombre.substring(0,9) + "" : nombre;
+              const truncado = nombre.length > 9 ? nombre.substring(0, 9) : nombre;
               return `<div>${truncado} ${cant}</div>`;
             })
             .join("");
         } else {
-          // --- NUEVA LÓGICA: C_ NO SE TRUNCA ---
           contenido = categoria.opciones ? 
             (Array.isArray(valGuardado) ? valGuardado : [valGuardado])
               .map(id => {
@@ -220,12 +221,18 @@ function renderizarCalendarioCompleto() {
                      <div class="day-num">${i}</div>
                      ${htmlContenido}`;
 
-   row.onclick = () => abrirEditorDia(i, fechaActual, datosMesActual, categoriesConfig, renderizarCalendarioCompleto);
+    // Evento de clic para abrir el editor
+    if (typeof abrirEditorDia === "function") {
+      row.onclick = () => abrirEditorDia(i, fechaActual, datosMesActual, categoriesConfig, renderizarCalendarioCompleto);
+    }
+
     listContainer.appendChild(row);
   }
 }
 
 function actualizarPantallaCompleta() {
   renderizarCalendarioCompleto();
-  renderizarTotales(datosMesActual, categoriesConfig);
+  if (typeof renderizarTotales === "function") {
+    renderizarTotales(datosMesActual, categoriesConfig);
+  }
 }

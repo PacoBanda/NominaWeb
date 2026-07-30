@@ -1,18 +1,35 @@
-import { db, USUARIO_ID } from "./firebase-init.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
   collection,
   doc,
   setDoc,
   deleteDoc,
-  onSnapshot,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-const state = { conceptos: [], variables: [], modoEdicion: null };
-const tbody = document.getElementById("tbody-conceptos");
-const btnNuevo = document.getElementById("btn-nuevo-concepto");
-const tituloModulo = document.getElementById("titulo-modulo");
+// --- ESTADO Y UI REQUERIDOS ---
+let USUARIO_ID = null;
 
-document.addEventListener("DOMContentLoaded", () => {
+const state = {
+  variables: [],
+  conceptos: [],
+  modoEdicion: null // null | 'NUEVO' | id_concepto
+};
+
+// Referencias al DOM
+let tbody;
+let btnNuevo;
+let tituloModulo;
+
+document.addEventListener("DOMContentLoaded", async () => {
+  USUARIO_ID = await obtenerUsuarioActual();
+  if (!USUARIO_ID) return;
+
+  // Inicialización de elementos del DOM con selectores corregidos
+  tbody = document.getElementById("tbody-conceptos");
+  btnNuevo = document.getElementById("btn-nuevo-concepto");
+  tituloModulo = document.getElementById("titulo-modulo");
+
   // Listener en tiempo real para las categorías/variables de Firestore
   onSnapshot(collection(db, "usuarios", USUARIO_ID, "categorias"), (snap) => {
     state.variables = [];
@@ -43,7 +60,6 @@ document.addEventListener("DOMContentLoaded", () => {
   onSnapshot(
     collection(db, "usuarios", USUARIO_ID, "ConceptosNomina"),
     (snap) => {
-      // Definimos el orden de prioridad: Devengo > Retencion > Base
       const ordenClases = { "Devengo": 1, "Retencion": 2, "Base": 3 };
 
       state.conceptos = snap.docs.map((d) => ({ id: d.id, ...d.data() }))
@@ -54,20 +70,19 @@ document.addEventListener("DOMContentLoaded", () => {
             if (prioridadA !== prioridadB) {
                 return prioridadA - prioridadB;
             }
-            // Si la clase es igual, ordenamos por código de empresa
             return (a.codigo_empresa || "").localeCompare(b.codigo_empresa || "");
         });
       renderUI();
     },
   );
 
-  btnNuevo.addEventListener("click", () => iniciarEdicion());
-  tbody.addEventListener("click", manejarClickTabla);
+  btnNuevo?.addEventListener("click", () => iniciarEdicion());
+  tbody?.addEventListener("click", manejarClickTabla);
 });
 
 function renderUI() {
-  // Si estamos editando o creando, bloqueamos el repintado de la lista
-  // para evitar que Firestore borre los caracteres que el usuario escribe en vivo
+  if (!tbody || !tituloModulo) return;
+
   if (state.modoEdicion) return;
   
   tituloModulo.innerHTML = "Conceptos Nómina";
@@ -94,11 +109,12 @@ function renderUI() {
 }
 
 function iniciarEdicion(id = null) {
+    if (!tbody || !tituloModulo) return;
+
     state.modoEdicion = id || "NUEVO";
     
-    const iconoGirar = '<span class="icono-girar">🔄</span>';
     const textoTitulo = id ? "Editando Concepto" : "Nuevo Concepto";
-    tituloModulo.innerHTML = textoTitulo + iconoGirar;
+    tituloModulo.innerHTML = textoTitulo;
 
     const data = id ? state.conceptos.find(c => c.id === id) : { 
         codigo_empresa: "", 
@@ -109,7 +125,6 @@ function iniciarEdicion(id = null) {
         forma_pago: "Mensual" 
     };
 
-    // Control por si el concepto es eliminado remotamente mientras se hace click
     if (!data) {
         alert("El concepto ya no existe.");
         state.modoEdicion = null;
@@ -139,7 +154,6 @@ function iniciarEdicion(id = null) {
                 </div>
             </td>
             <td>
-                
                 <div class="columna-vertical">
                     ${generarPills('variable_cantidad', state.variables, data.variable_cantidad)}
                 </div>
@@ -169,7 +183,6 @@ function iniciarEdicion(id = null) {
             </td>
         </tr>`;
 
-    // Asignación de lógica para los botones alternables (Pills)
     document.querySelectorAll('.btn-pill-brutal').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const campo = e.target.dataset.campo;
@@ -178,8 +191,8 @@ function iniciarEdicion(id = null) {
         });
     });
 
-    document.getElementById("btn-guardar-inline").addEventListener("click", guardarConcepto);
-    document.getElementById("btn-cancelar-inline").addEventListener("click", () => { 
+    document.getElementById("btn-guardar-inline")?.addEventListener("click", guardarConcepto);
+    document.getElementById("btn-cancelar-inline")?.addEventListener("click", () => { 
         state.modoEdicion = null; 
         renderUI(); 
     });
@@ -190,26 +203,39 @@ async function guardarConcepto() {
     document.querySelector(`.btn-pill-brutal[data-campo="${campo}"].active`)
       ?.dataset.val || "";
       
+  const conceptoTexto = document.getElementById("input-concepto-nombre")?.value || "";
+
+  if (!conceptoTexto) return alert("El nombre es obligatorio");
+
+  const idNombreBase = conceptoTexto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+
+  const id = state.modoEdicion === "NUEVO" ? `C_N_${idNombreBase}` : state.modoEdicion;
+
   const datosGuardar = {
-    codigo_empresa: document.getElementById("input-concepto-codigo").value,
-    concepto: document.getElementById("input-concepto-nombre").value,
+    codigo_empresa: document.getElementById("input-concepto-codigo")?.value || "",
+    concepto: conceptoTexto,
     clase: getPillValue("clase"),
     variable_cantidad: getPillValue("variable_cantidad"),
     tipo_precio: getPillValue("tipo_precio"),
     forma_pago: getPillValue("forma_pago"),
   };
 
-  if (!datosGuardar.concepto) return alert("El nombre es obligatorio");
-  
-  const id = state.modoEdicion === "NUEVO" ? `C_N_${Date.now()}` : state.modoEdicion;
-  
-  await setDoc(
-    doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id),
-    datosGuardar,
-  );
-  
-  state.modoEdicion = null;
-  renderUI();
+  try {
+    await setDoc(
+      doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id),
+      datosGuardar
+    );
+    state.modoEdicion = null;
+    renderUI();
+  } catch (error) {
+    console.error("Error guardando el concepto: ", error);
+  }
 }
 
 function manejarClickTabla(e) {
@@ -220,6 +246,11 @@ function manejarClickTabla(e) {
 }
 
 async function eliminarConcepto(id) {
-  if (confirm("¿Eliminar?"))
-    await deleteDoc(doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id));
+  if (confirm("¿Eliminar este concepto?")) {
+    try {
+      await deleteDoc(doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id));
+    } catch (error) {
+      console.error("Error eliminando concepto: ", error);
+    }
+  }
 }

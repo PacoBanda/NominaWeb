@@ -1,5 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signInWithEmailAndPassword, 
+    createUserWithEmailAndPassword, 
+    signOut 
+} from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
+
+import { 
+    getFirestore, 
+    doc, 
+    setDoc 
+} from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDMW1GAJtKzWWHz9y6SLfXAZDfIYZcAV-g",
@@ -12,42 +24,104 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
+
+// Estado para saber si estamos registrando o procesando
+let isRegistering = false;
+let isProcessingSubmit = false; // Flag para evitar que el listener interfiera
 
 // --- CONTROL DE RUTAS SEGURO ---
 onAuthStateChanged(auth, (user) => {
-    const isIndex = window.location.pathname.endsWith('index.html') || window.location.pathname === '/' || window.location.pathname.endsWith('.html') === false;
+    // Si estamos guardando los datos en el submit, no redirigir automáticamente aún
+    if (isProcessingSubmit) return;
+
+    const isIndex = window.location.pathname.endsWith('index.html') || 
+                    window.location.pathname === '/' || 
+                    window.location.pathname.endsWith('.html') === false;
 
     if (user) {
-        // Si el usuario está autenticado y está en el login, saltar al menú
         if (isIndex) {
             window.location.href = 'navegacion.html';
         }
     } else {
-        // Si NO está autenticado y está intentando ver otra página, patitas a la calle
         if (!isIndex) {
             window.location.href = 'index.html';
         }
     }
 });
 
-// --- LÓGICA DE LA PÁGINA: LOGIN (index.html) ---
+// --- LÓGICA DE INTERFAZ: ALTERNAR MODO ---
+const toggleBtn = document.getElementById('toggle-auth-btn');
+const authTitle = document.getElementById('auth-title');
+const mainBtn = document.getElementById('main-btn');
+const nombreInput = document.getElementById('nombre');
+
+if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+        isRegistering = !isRegistering;
+        if (isRegistering) {
+            authTitle.textContent = "Crear Cuenta";
+            mainBtn.textContent = "Registrarse";
+            toggleBtn.textContent = "¿Ya tienes cuenta? Inicia sesión";
+            
+            if (nombreInput) {
+                nombreInput.classList.remove('hidden');
+                nombreInput.required = true;
+            }
+        } else {
+            authTitle.textContent = "Bienvenido";
+            mainBtn.textContent = "Entrar";
+            toggleBtn.textContent = "¿No tienes cuenta? Regístrate aquí";
+            
+            if (nombreInput) {
+                nombreInput.classList.add('hidden');
+                nombreInput.required = false;
+                nombreInput.value = '';
+            }
+        }
+    });
+}
+
+// --- LÓGICA DE ENVÍO DE FORMULARIO ---
 const loginForm = document.getElementById('auth-form');
 if (loginForm) {
     loginForm.onsubmit = async (e) => {
         e.preventDefault();
-        const email = document.getElementById('email').value;
+        isProcessingSubmit = true; // Bloqueamos temporalmente la redirección de onAuthStateChanged
+
+        const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
+        const nombre = nombreInput ? nombreInput.value.trim() : '';
         
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            if (isRegistering) {
+                // 1. Crear la cuenta en Auth
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                // 2. Guardar OBLIGATORIAMENTE el documento base del usuario en Firestore
+                await setDoc(doc(db, "usuarios", user.uid), {
+                    nombre: nombre || "Usuario sin nombre",
+                    email: user.email,
+                    creadoEn: new Date()
+                });
+
+                alert("¡Usuario registrado exitosamente!");
+            } else {
+                // Iniciar sesión
+                await signInWithEmailAndPassword(auth, email, password);
+            }
+            
+            // 3. Redirigir manualmente una vez que Firestore HAYA TERMINADO
             window.location.href = 'navegacion.html';
         } catch (err) { 
-            alert("Error al iniciar sesión: " + err.message); 
+            isProcessingSubmit = false; // Si hay error, permitimos que el estado vuelva a la normalidad
+            alert("Error: " + err.message); 
         }
     };
 }
 
-// --- LÓGICA DE LA PÁGINA: MENÚ (navegacion.html) ---
+// --- LÓGICA DE CIERRE DE SESIÓN ---
 const logoutBtn = document.getElementById('logout-btn');
 if (logoutBtn) {
     logoutBtn.onclick = async () => {

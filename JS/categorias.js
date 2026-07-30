@@ -1,5 +1,6 @@
 // JS/categorias.js
-import { db, USUARIO_ID } from "./firebase-init.js";
+import { mostrarConfirmacionCustom } from "./modal.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import {
   collection,
   doc,
@@ -10,16 +11,26 @@ import {
   getDoc,
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
 
-// --- CONSTANTES ---
+// --- ESTADO ---
+let USUARIO_ID = null; 
+let idFormulaEnEdicion = null;
+let idElementoEnEdicion = null;
+
+// --- CONSTANTES DE TARJETAS SISTEMA (Añadir estas líneas) ---
 const ID_TARJETA_SUMAR_FIJA = "S_complementos";
 const ID_CONTAR_SISTEMA = "C_sistema";
 const ID_CONTAR_TURNOS = "C_turnos";
 const ID_CONTAR_TIPODIA = "C_tipodia";
 
-// --- ESTADO ---
-let idFormulaEnEdicion = null;
-let idElementoEnEdicion = null;
-activarEscuchadorCategorias();
+// Inicializamos el módulo
+iniciarModulo();
+
+async function iniciarModulo() {
+  USUARIO_ID = await obtenerUsuarioActual();
+  if (USUARIO_ID) {
+    activarEscuchadorCategorias();
+  }
+}
 
 function activarEscuchadorCategorias() {
   const colRef = collection(db, "usuarios", USUARIO_ID, "categorias");
@@ -103,18 +114,24 @@ function activarEscuchadorCategorias() {
           seleccionMultiple: false,
           opciones: [
             {
-              id: "C_E_dia_natural",
+              id: "C_S_dia_natural",
               valor: "Dia_Natural",
               color: "#cc0000",
-              visible: true,
-              posicion: 1,
             },
             {
-              id: "C_E_dias_mes",
+              id: "C_S_dias_mes",
               valor: "Dias_Mes",
               color: "#cc0000",
-              visible: true,
-              posicion: 2,
+            },
+            {
+              id: "C_S_total_devengado",
+              valor: "Total Devengado",
+              color: "#cc0000",
+            },
+            {
+              id: "C_S_cantidad_1",
+              valor: "Cantidad 1",
+              color: "#cc0000",
             },
           ],
         },
@@ -406,9 +423,7 @@ function crearTarjetaCategoriaDOM(id, categoria) {
     const prefijoPadre = id.substring(0, 2);
     const sufijo = Math.random().toString(36).substr(2, 9);
     const idElementoBase = valorLimpio.toLowerCase().replace(/[^a-z0-9]/g, "_");
-    const idNuevoElemento = esTarjetaTurnos
-      ? `${prefijoPadre}E_${idElementoBase}`
-      : `${prefijoPadre}E_${sufijo}`;
+    const idNuevoElemento = `${prefijoPadre}E_${idElementoBase}`;
 
     let datosElemento = {
       id: idNuevoElemento,
@@ -608,29 +623,42 @@ window.crearNuevaFormula = async function (inputId) {
 };
 
 async function eliminarElemento(categoriaId, elementoId) {
+  const confirmado = await mostrarConfirmacionCustom(
+    "¿Seguro que deseas eliminar este elemento?",
+    "⚠️ ELIMINAR ELEMENTO"
+  );
+  if (!confirmado) return;
+
   const docRef = doc(db, "usuarios", USUARIO_ID, "categorias", categoriaId);
   try {
     const docSnap = await getDoc(docRef);
-    if (docSnap.exists())
+    if (docSnap.exists()) {
       await updateDoc(docRef, {
         opciones: (docSnap.data().opciones || []).filter(
-          (opc) => opc.id !== elementoId,
+          (opc) => opc.id !== elementoId
         ),
       });
+    }
   } catch (e) {
-    console.error(e);
+    console.error("Error al eliminar elemento:", e);
   }
 }
 
+// CÓDIGO NUEVO
 async function eliminarCategoria(categoriaId) {
-  if (confirm("¿Seguro que quieres eliminar esta categoría?")) {
-    try {
-      await deleteDoc(
-        doc(db, "usuarios", USUARIO_ID, "categorias", categoriaId),
-      );
-    } catch (e) {
-      console.error(e);
-    }
+  const confirmado = await mostrarConfirmacionCustom(
+    "¿Seguro que quieres eliminar esta categoría?",
+    "⚠️ ELIMINAR CATEGORÍA"
+  );
+
+  if (!confirmado) return;
+
+  try {
+    await deleteDoc(
+      doc(db, "usuarios", USUARIO_ID, "categorias", categoriaId)
+    );
+  } catch (e) {
+    console.error("Error al eliminar categoría:", e);
   }
 }
 
