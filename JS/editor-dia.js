@@ -5,7 +5,7 @@ import {
   setDoc,
   deleteField,
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
-import { db, USUARIO_ID } from "./firebase-init.js";
+import { db, obtenerUsuarioActual } from "./firebase-init.js";
 import { calcularTotales } from "./totales.js";
 
 function isColorLight(colorHex) {
@@ -15,6 +15,58 @@ function isColorLight(colorHex) {
   const g = parseInt(hex.substr(2, 2), 16);
   const b = parseInt(hex.substr(4, 2), 16);
   return (r * 299 + g * 587 + b * 1000) / 1000 > 155;
+}
+
+// Modal de confirmación dinámico e infalible
+function pedirConfirmacionDirecta(mensaje, titulo = "CONFIRMAR") {
+  return new Promise((resolve) => {
+    // Crear fondo oscuro
+    const overlay = document.createElement("div");
+    overlay.style.cssText = `
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 999999; backdrop-filter: blur(2px);
+    `;
+
+    // Crear caja del modal
+    const box = document.createElement("div");
+    box.style.cssText = `
+      background: #ffffff;
+      color: #000000;
+      padding: 24px;
+      border-radius: 12px;
+      max-width: 360px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      font-family: sans-serif;
+      border: 2px solid #333;
+    `;
+
+    box.innerHTML = `
+      <h3 style="margin-top:0; font-size:1.2rem; color:#d32f2f;">${titulo}</h3>
+      <p style="margin: 15px 0 20px; font-size:1rem; line-height:1.4;">${mensaje}</p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button id="btn-modal-cancel" style="padding:10px 18px; border-radius:6px; border:1px solid #ccc; background:#eee; cursor:pointer; font-weight:bold;">Cancelar</button>
+        <button id="btn-modal-confirm" style="padding:10px 18px; border-radius:6px; border:none; background:#d32f2f; color:#fff; cursor:pointer; font-weight:bold;">Eliminar</button>
+      </div>
+    `;
+
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    box.querySelector("#btn-modal-cancel").onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(false);
+    };
+
+    box.querySelector("#btn-modal-confirm").onclick = () => {
+      document.body.removeChild(overlay);
+      resolve(true);
+    };
+  });
 }
 
 export function abrirEditorDia(
@@ -31,6 +83,7 @@ export function abrirEditorDia(
 
   const ano = fechaActual.getFullYear();
   const mes = String(fechaActual.getMonth() + 1).padStart(2, "0");
+
   document.getElementById("editor-date-title").innerText =
     `EDITAR DÍA: ${String(numeroDia).padStart(2, "0")}/${mes}/${ano}`;
   containerInputs.innerHTML = "";
@@ -149,48 +202,67 @@ export function abrirEditorDia(
     payloadEdicionDia.comentario || "";
   modal.classList.remove("hidden");
 
-  // --- LÓGICA DE GUARDADO INTEGRADA CON TOTALES ---
+  // --- GUARDAR DÍA ---
   document.getElementById("btn-guardar-dia").onclick = async () => {
-    payloadEdicionDia.comentario = document.getElementById("input-comentario-dia").value;
-    
-    // 1. Simulamos el mes añadiendo el día editado
-    const copiaMes = JSON.parse(JSON.stringify(datosMesActual));
-    copiaMes[numeroDia] = payloadEdicionDia;
-    
-    // 2. Calculamos el mapa de totales actualizado
-    const totalesActualizados = calcularTotales(copiaMes, categoriesConfig);
-    
-    // 3. Guardamos con setDoc y { merge: true } para pisar "valoresTotales" de raíz
-    const docRef = doc(db, "usuarios", USUARIO_ID, "diario", `${ano}_${mes}`);
-    await setDoc(docRef, { 
-      [numeroDia]: payloadEdicionDia, 
-      valoresTotales: totalesActualizados 
-    }, { merge: true });
-    
-    modal.classList.add("hidden");
-    callbackGuardar();
+    try {
+      const usuarioId = await obtenerUsuarioActual();
+      if (!usuarioId) return;
+
+      payloadEdicionDia.comentario = document.getElementById("input-comentario-dia").value;
+      
+      const copiaMes = JSON.parse(JSON.stringify(datosMesActual || {}));
+      copiaMes[numeroDia] = payloadEdicionDia;
+      
+      const totalesActualizados = typeof calcularTotales === "function" 
+        ? calcularTotales(copiaMes, categoriesConfig) 
+        : {};
+      
+      const docRef = doc(db, "usuarios", usuarioId, "diario", `${ano}_${mes}`);
+      await setDoc(docRef, { 
+        [numeroDia]: payloadEdicionDia, 
+        valoresTotales: totalesActualizados 
+      }, { merge: true });
+      
+      modal.classList.add("hidden");
+      if (typeof callbackGuardar === "function") callbackGuardar();
+    } catch (e) {
+      console.error("Error al guardar día:", e);
+    }
   };
 
-  // --- LÓGICA DE ELIMINACIÓN INTEGRADA CON TOTALES ---
+  // --- ELIMINAR DÍA ---
   document.getElementById("btn-eliminar-dia").onclick = async () => {
-    if (confirm("¿Borrar día?")) {
-      // 1. Simulamos eliminando el día de los datos actuales
-      const copiaMes = JSON.parse(JSON.stringify(datosMesActual));
+    try {
+      const usuarioId = await obtenerUsuarioActual();
+      if (!usuarioId) return;
+
+      // Pedir confirmación con el modal inyectado
+      const confirmado = await pedirConfirmacionDirecta(
+        `¿Deseas eliminar todos los datos del día ${numeroDia}?`,
+        "🗑️ ELIMINAR DÍA"
+      );
+
+      if (!confirmado) return;
+
+      // Si confirma, borramos de Firestore
+      const copiaMes = JSON.parse(JSON.stringify(datosMesActual || {}));
       delete copiaMes[numeroDia];
       delete copiaMes["valoresTotales"];
       
-      // 2. Calculamos los totales limpios sin ese día
-      const totalesActualizados = calcularTotales(copiaMes, categoriesConfig);
+      const totalesActualizados = typeof calcularTotales === "function" 
+        ? calcularTotales(copiaMes, categoriesConfig) 
+        : {};
       
-      // 3. Borramos el día en Firestore y pisamos el nodo completo de totales
-      const docRef = doc(db, "usuarios", USUARIO_ID, "diario", `${ano}_${mes}`);
+      const docRef = doc(db, "usuarios", usuarioId, "diario", `${ano}_${mes}`);
       await setDoc(docRef, { 
         [numeroDia]: deleteField(),
         valoresTotales: totalesActualizados
       }, { merge: true });
       
       modal.classList.add("hidden");
-      callbackGuardar();
+      if (typeof callbackGuardar === "function") callbackGuardar();
+    } catch (e) {
+      console.error("Error al eliminar día:", e);
     }
   };
 
