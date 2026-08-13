@@ -112,12 +112,21 @@ body {
 }
 
 .tabla-precios {
-  width: 100%;
   border-collapse: collapse;
   font-size: 11px;
 }
 
-/* Encabezado pegajoso para no perder las fechas/meses al hacer scroll vertical */
+/* Permitir que la matriz variable se expanda lo que necesite */
+#bloque-variable .tabla-precios {
+  width: max-content; 
+  min-width: 100%;
+}
+
+#Tabla_PrecioFijo {
+  width: auto !important;
+}
+
+/* Encabezado pegajoso */
 .tabla-precios thead th {
   position: sticky;
   top: 0;
@@ -129,22 +138,31 @@ body {
 .tabla-precios th,
 .tabla-precios td {
   border: 1px solid #000;
-  padding: 8px 6px;
   text-align: center;
   white-space: nowrap;
   vertical-align: middle;
 }
 
-/* Primera columna: Conceptos alineados a la izquierda */
+/* Ancho compacto ajustado para celdas de meses y precios fijos */
+.tabla-precios th:not(:first-child),
+.tabla-precios td:not(:first-child) {
+  min-width: 62px !important;
+  width: 62px !important;
+  padding: 4px 1px !important;
+}
+
+/* Primera columna: Conceptos fija a la izquierda */
 .tabla-precios td:first-child {
   text-align: left;
-  padding-left: 12px !important;
+  padding-left: 10px !important;
+  padding-right: 10px !important;
   font-weight: bold;
   background-color: #fff;
   position: sticky;
   left: 0;
   z-index: 5;
   border-right: 2px solid #000;
+  min-width: 160px; /* Ancho cómodo para nombres de conceptos */
 }
 
 .tabla-precios thead th:first-child {
@@ -152,22 +170,6 @@ body {
   left: 0;
   z-index: 12;
   border-right: 2px solid #000;
-}
-
-/* Ajustes de ancho mínimo para romper el colapso */
-.matriz {
-  min-width: 750px;
-}
-
-#Tabla_PrecioFijo {
-  width: auto !important;
-  min-width: 250px;
-}
-
-/* Columnas dinámicas de fecha */
-.tabla-precios thead th:has(.input-fecha-columna) {
-  padding: 4px !important;
-  min-width: 125px;
 }
 
 /* ==========================================================================
@@ -185,7 +187,7 @@ body {
 }
 
 #btnAñadirFijo:hover {
-  background: #eef200; /* Toque amarillo brutalista */
+  background: #eef200;
 }
 
 .input-valor-fijo,
@@ -194,14 +196,16 @@ body {
   background: transparent;
   text-align: center;
   width: 100%;
-  padding: 4px;
+  box-sizing: border-box;
+  padding: 2px 0 !important;
+  margin: 0;
   outline: none;
   font-family: monospace;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
 }
 
-/* Estados de foco y feedback visual al editar */
+/* Estados de foco al editar */
 #bloque-fijo .input-valor-fijo:focus {
   background: #fff !important;
   border: 1.5px solid #000 !important;
@@ -219,11 +223,10 @@ td:hover .input-matriz-var {
   background: #f5f5f5;
 }
 
-/* Inputs de fecha y botones de eliminación en th */
 .input-fecha-columna {
-  width: 90px;
-  font-size: 10px;
-  padding: 2px;
+  width: 58px;
+  font-size: 9px;
+  padding: 1px;
   border: 1.5px solid #000;
   font-weight: bold;
   text-align: center;
@@ -231,7 +234,7 @@ td:hover .input-matriz-var {
 
 .btn-eliminar-columna {
   padding: 2px 4px;
-  font-size: 11px;
+  font-size: 10px;
   cursor: pointer;
   background: transparent;
   border: none;
@@ -242,7 +245,7 @@ td:hover .input-matriz-var {
   transform: scale(1.2);
 }
 
-/* Ocultar las flechas arriba/abajo (spinners) en inputs numéricos */
+/* Ocultar flechas de subir/bajar número */
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;

@@ -95,3 +95,28 @@ button {
 
 .btn-delete { background: #ff7675; } /* Rojo */
 .btn-save { background: #ffeaa7; }   /* Amarillo */
+
+/* --- ESTILOS PARA LOS INPUTS DE CANTIDAD --- */
+
+/* 1. Modificar el tamaño y centrado del input */
+.input-cantidad-value,
+.modal-content-editor input[type="number"] {
+    border: 2px solid #000;
+    padding: 6px 8px;
+    width: 90px; /* Tamaño más ancho y cómodo */
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* 2. Ocultar flechas (spinners) en Chrome, Safari, Edge, Opera */
+.modal-content-editor input[type="number"]::-webkit-outer-spin-button,
+.modal-content-editor input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 3. Ocultar flechas (spinners) en Firefox */
+.modal-content-editor input[type="number"] {
+    -moz-appearance: textfield;
+}

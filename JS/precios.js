@@ -65,14 +65,20 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
-    // Guardar precio fijo
+    // Guardar precio fijo (Sustituido updateDoc por setDoc merge para mayor seguridad)
     if (target.classList.contains("input-valor-fijo")) {
       const docRef = doc(db, "usuarios", usuarioId, "PreciosFijos", target.dataset.id);
-      const campoValores = `valores.${target.dataset.concepto}`;
 
-      await updateDoc(docRef, {
-        [campoValores]: valorNumerico
-      });
+      await setDoc(
+        docRef,
+        {
+          fechaVigor: target.dataset.id,
+          valores: {
+            [target.dataset.concepto]: valorNumerico
+          }
+        },
+        { merge: true }
+      );
     }
 
     // Guardar precio variable
