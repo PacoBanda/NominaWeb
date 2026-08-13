@@ -1,10 +1,16 @@
 // JS/totales.js
 
 // --- ESTA FUNCIÓN DEVUELVE EL MAPA PLANO PARA FIREBASE ---
-export function calcularTotales(datosMesActual, categoriesConfig) {
+export function calcularTotales(datosMesActual, categoriesConfig, fechaActual = new Date()) {
     if (!categoriesConfig || Object.keys(categoriesConfig).length === 0) return null;
 
     const mapaTotalesConsolidados = {};
+
+    // --------------------------------------------------------------------------
+    // CAMBIO 1: Calcular días totales del mes y asignarlo a C_E_DiasMes
+    // --------------------------------------------------------------------------
+    const diasMes = new Date(fechaActual.getFullYear(), fechaActual.getMonth() + 1, 0).getDate();
+    mapaTotalesConsolidados["C_E_DiasMes"] = diasMes;
 
     // 1. Inicialización en plano
     Object.keys(categoriesConfig).forEach((catId) => {
@@ -62,7 +68,6 @@ export function calcularTotales(datosMesActual, categoriesConfig) {
 
             try {
                 // CORRECCIÓN DE SEGURIDAD: Validar que la expresión SOLO contenga números, operadores, puntos y espacios
-                // Esto evita inyecciones de código malicioso mediante inputs de fórmulas
                 if (/^[0-9.+\-*/()\s]+$/.test(expr) || expr.trim() === "") {
                     const res = new Function(`return (${expr || 0});`)();
                     mapaTotalesConsolidados[catId] = Math.round(res * 100) / 100;
@@ -80,18 +85,21 @@ export function calcularTotales(datosMesActual, categoriesConfig) {
         }
     });
 
-    // 5. Limpieza de ceros: Eliminamos las claves que se quedaron en 0 para no saturar Firestore
+    // 5. Limpieza de ceros:
+    // --------------------------------------------------------------------------
+    // CAMBIO 2: Evitar que C_E_DiasMes se borre aunque valga 0 o no coincida
+    // --------------------------------------------------------------------------
     Object.keys(mapaTotalesConsolidados).forEach((key) => {
-        if (mapaTotalesConsolidados[key] === 0) {
+        if (mapaTotalesConsolidados[key] === 0 && key !== "C_E_DiasMes") {
             delete mapaTotalesConsolidados[key];
         }
     });
 
-    return mapaTotalesConsolidados; // Devuelve exactamente { "C_E_ma_ana": 13, "F_E_qwe": 5000, ... }
+    return mapaTotalesConsolidados; // Devuelve { "C_E_DiasMes": 31, "C_E_laborable": 21, ... }
 }
 
 // --- ESTA FUNCIÓN SE ENCARGA SÓLO DE MAQUETAR EL HTML ---
-export function renderizarTotales(datosMesActual, categoriesConfig) {
+export function renderizarTotales(datosMesActual, categoriesConfig, fechaActual = new Date()) {
     const contenedorTotales = document.getElementById("totals-grid");
     if (!contenedorTotales) return;
     
@@ -100,7 +108,7 @@ export function renderizarTotales(datosMesActual, categoriesConfig) {
         return;
     }
 
-    const totales = calcularTotales(datosMesActual, categoriesConfig);
+    const totales = calcularTotales(datosMesActual, categoriesConfig, fechaActual);
     if (!totales) {
         contenedorTotales.innerHTML = `<p class="no-data-text">No hay datos.</p>`;
         return;

@@ -119,7 +119,7 @@ function activarEscuchadorCategorias() {
               color: "#cc0000",
             },
             {
-              id: "C_S_dias_mes",
+              id: "C_E_DiasMes",
               valor: "Dias_Mes",
               color: "#cc0000",
             },
