@@ -16,8 +16,8 @@ let USUARIO_ID = null;
 // --- ESTADO GLOBAL ---
 let SISTEMA_VARIABLES = {
   C_S_cantidad_1: 1,
-  C_S_dias_mes: 30,
-  C_S_dia_natural: 1,
+  C_S_base_cc: 0, // Se actualizará dinámicamente con el valor de Base C.C.
+  C_S_base_at: 0, // Se actualizará dinámicamente con el valor de Base A.T.
   C_S_total_devengado: 0,
 };
 
@@ -125,7 +125,7 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
     
     SISTEMA_VARIABLES.C_S_dias_mes = diasDelMes;
     SISTEMA_VARIABLES.C_S_dia_natural = diasDelMes;
-    SISTEMA_VARIABLES.C_S_total_devengado = 1;
+    SISTEMA_VARIABLES.C_S_total_devengado = 0;
 
     const tbodyDev = document.getElementById("tbody-devengos");
     const tbodyRet = document.getElementById("tbody-retenciones");
@@ -150,12 +150,16 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       ...doc.data(),
     }));
 
+    // Ordenamos: Devengos primero, luego Bases y Retenciones al final
     conceptos.sort((a, b) => {
       const claseA = (a.clase || "").toLowerCase();
       const claseB = (b.clase || "").toLowerCase();
-      if (claseA === "devengo" && claseB !== "devengo") return -1;
-      if (claseA !== "devengo" && claseB === "devengo") return 1;
-      return 0;
+      
+      const orden = { devengo: 1, base: 2, retencion: 3 };
+      const pesoA = orden[claseA] || 4;
+      const pesoB = orden[claseB] || 4;
+      
+      return pesoA - pesoB;
     });
 
     const promesasPrecios = conceptos.map(c => 
@@ -165,9 +169,34 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
     );
     const preciosResueltos = await Promise.all(promesasPrecios);
 
+    // -------------------------------------------------------------------------
+    // PRIMERA PASADA: Identificar "Base A.T." y "Base C.C." y asignar a variables
+    // -------------------------------------------------------------------------
+    conceptos.forEach((c, i) => {
+      const nombreConcepto = (c.concepto || "").trim().toLowerCase();
+      const cant = totales[c.variable_cantidad] || 0;
+      const precio = preciosResueltos[i] || 0;
+      const subtotalCalculado = cant * precio;
+
+      // Asignación para Base A.T.
+      if (nombreConcepto.includes("base a.t.") || nombreConcepto.includes("base at")) {
+        totales.C_S_base_at = subtotalCalculado;
+        SISTEMA_VARIABLES.C_S_base_at = subtotalCalculado;
+      }
+
+      // Asignación para Base C.C.
+      if (nombreConcepto.includes("base c.c.") || nombreConcepto.includes("base cc")) {
+        totales.C_S_base_cc = subtotalCalculado;
+        SISTEMA_VARIABLES.C_S_base_cc = subtotalCalculado;
+      }
+    });
+
     let bruto = 0, deducciones = 0;
     snapshotNominaActual.items = [];
 
+    // -------------------------------------------------------------------------
+    // SEGUNDA PASADA: Renderizado y cálculo definitivo de la nómina
+    // -------------------------------------------------------------------------
     conceptos.forEach((c, i) => {
       const pago = (c.forma_pago || "Mensual").toLowerCase();
       if (pago === "junio" && mesInt !== 6) return;

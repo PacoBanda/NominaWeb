@@ -114,13 +114,13 @@ function activarEscuchadorCategorias() {
           seleccionMultiple: false,
           opciones: [
             {
-              id: "C_S_dia_natural",
-              valor: "Dia_Natural",
+              id: "C_S_base_at",
+              valor: "Base_AT",
               color: "#cc0000",
             },
             {
-              id: "C_E_DiasMes",
-              valor: "Dias_Mes",
+              id: "C_S_base_cc",
+              valor: "Base_CC",
               color: "#cc0000",
             },
             {
