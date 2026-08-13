@@ -124,6 +124,11 @@ function activarEscuchadorCategorias() {
               color: "#cc0000",
             },
             {
+              id: "C_S_base_he",
+              valor: "Base_HE",
+              color: "#cc0000",
+            },
+            {
               id: "C_S_total_devengado",
               valor: "Total Devengado",
               color: "#cc0000",

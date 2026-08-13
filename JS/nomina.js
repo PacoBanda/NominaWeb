@@ -16,8 +16,9 @@ let USUARIO_ID = null;
 // --- ESTADO GLOBAL ---
 let SISTEMA_VARIABLES = {
   C_S_cantidad_1: 1,
-  C_S_base_cc: 0, // Se actualizará dinámicamente con el valor de Base C.C.
-  C_S_base_at: 0, // Se actualizará dinámicamente con el valor de Base A.T.
+  C_S_base_cc: 0, // Base C.C.
+  C_S_base_at: 0, // Base A.T.
+  C_S_base_he: 0, // Base H.E.
   C_S_total_devengado: 0,
 };
 
@@ -170,7 +171,7 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
     const preciosResueltos = await Promise.all(promesasPrecios);
 
     // -------------------------------------------------------------------------
-    // PRIMERA PASADA: Identificar "Base A.T." y "Base C.C." y asignar a variables
+    // PRIMERA PASADA: Identificar Base A.T., Base C.C. y Base H.E.
     // -------------------------------------------------------------------------
     conceptos.forEach((c, i) => {
       const nombreConcepto = (c.concepto || "").trim().toLowerCase();
@@ -178,16 +179,22 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       const precio = preciosResueltos[i] || 0;
       const subtotalCalculado = cant * precio;
 
-      // Asignación para Base A.T.
+      // Base A.T.
       if (nombreConcepto.includes("base a.t.") || nombreConcepto.includes("base at")) {
         totales.C_S_base_at = subtotalCalculado;
         SISTEMA_VARIABLES.C_S_base_at = subtotalCalculado;
       }
 
-      // Asignación para Base C.C.
+      // Base C.C.
       if (nombreConcepto.includes("base c.c.") || nombreConcepto.includes("base cc")) {
         totales.C_S_base_cc = subtotalCalculado;
         SISTEMA_VARIABLES.C_S_base_cc = subtotalCalculado;
+      }
+
+      // Base H.E.
+      if (nombreConcepto.includes("base h.e.") || nombreConcepto.includes("base he")) {
+        totales.C_S_base_he = subtotalCalculado;
+        SISTEMA_VARIABLES.C_S_base_he = subtotalCalculado;
       }
     });
 
