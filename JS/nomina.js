@@ -151,16 +151,27 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       ...doc.data(),
     }));
 
-    // Ordenamos: Devengos primero, luego Bases y Retenciones al final
+    // -------------------------------------------------------------------------
+    // ORDENACIÓN DE CONCEPTOS:
+    // 1. Por CLASE (Devengos primero, Bases en medio, Retenciones al final)
+    // 2. Por CÓDIGO DE EMPRESA (0001, 0015, 0203, 0242, 0350...)
+    // -------------------------------------------------------------------------
     conceptos.sort((a, b) => {
       const claseA = (a.clase || "").toLowerCase();
       const claseB = (b.clase || "").toLowerCase();
       
-      const orden = { devengo: 1, base: 2, retencion: 3 };
-      const pesoA = orden[claseA] || 4;
-      const pesoB = orden[claseB] || 4;
+      const ordenClase = { devengo: 1, base: 2, retencion: 3 };
+      const pesoA = ordenClase[claseA] || 4;
+      const pesoB = ordenClase[claseB] || 4;
       
-      return pesoA - pesoB;
+      if (pesoA !== pesoB) {
+        return pesoA - pesoB;
+      }
+
+      const codA = (a.codigo_empresa || a.codigo || "").toString();
+      const codB = (b.codigo_empresa || b.codigo || "").toString();
+
+      return codA.localeCompare(codB, undefined, { numeric: true, sensitivity: "base" });
     });
 
     const promesasPrecios = conceptos.map(c => 

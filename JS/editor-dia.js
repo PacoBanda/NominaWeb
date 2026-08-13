@@ -17,7 +17,7 @@ function esColorClaro(colorHex) {
   const r = parseInt(hex.substring(0, 2), 16);
   const g = parseInt(hex.substring(2, 4), 16);
   const b = parseInt(hex.substring(4, 6), 16);
-  // Fórmula de luminancia relativa
+  // Fórmula de luminancia relativa (YIQ)
   const yiq = (r * 299 + g * 587 + b * 114) / 1000;
   return yiq >= 128;
 }
@@ -47,12 +47,16 @@ export function abrirEditorDia(
 
     const categoria = categoriesConfig[catId];
     
-    // Evaluamos si permite selección múltiple
+    // 1. LA CONFIGURACIÓN MANDA SIEMPRE
     const esMultiple = 
       categoria.seleccionMultiple === true || 
-      categoria.seleccionMultiple === "true" ||
-      Array.isArray(payloadEdicionDia[catId]);
+      categoria.seleccionMultiple === "true";
     
+    // Si la configuración es FALSE pero los datos guardados eran un Array, nos quedamos con el primer elemento
+    if (!esMultiple && Array.isArray(payloadEdicionDia[catId])) {
+      payloadEdicionDia[catId] = payloadEdicionDia[catId][0] || null;
+    }
+
     const grupoDiv = document.createElement("div");
     grupoDiv.className = "editor-category-block";
     grupoDiv.innerHTML = `<div class="editor-category-title">${categoria.nombre || catId}:</div>`;
@@ -81,6 +85,7 @@ export function abrirEditorDia(
         subGrid.appendChild(item);
       });
       grupoDiv.appendChild(subGrid);
+
     } else {
       const contenedorChips = document.createElement("div");
       contenedorChips.className = "chips-container-block";
@@ -129,7 +134,9 @@ export function abrirEditorDia(
 
         btn.onclick = () => {
           btnNinguno.classList.remove("activo");
+
           if (esMultiple) {
+            // Lógica de Selección Múltiple
             if (!Array.isArray(payloadEdicionDia[catId])) {
               payloadEdicionDia[catId] = [];
             }
@@ -148,12 +155,14 @@ export function abrirEditorDia(
               }
             }
           } else {
+            // Lógica de Selección Única
             payloadEdicionDia[catId] = opc.id;
             contenedorChips.querySelectorAll(".chip-selection-btn").forEach((b) => {
               b.classList.remove("activo");
               b.style.backgroundColor = "";
               b.style.color = "";
             });
+            
             btn.classList.add("activo");
             if (opc.color) {
               btn.style.setProperty("background-color", opc.color, "important");
