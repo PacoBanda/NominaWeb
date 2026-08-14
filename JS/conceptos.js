@@ -1,4 +1,5 @@
 import { db, obtenerUsuarioActual } from "./firebase-init.js";
+import { mostrarConfirmacionCustom } from "./modal.js";
 import {
   collection,
   doc,
@@ -246,11 +247,23 @@ function manejarClickTabla(e) {
 }
 
 async function eliminarConcepto(id) {
-  if (confirm("¿Eliminar este concepto?")) {
-    try {
-      await deleteDoc(doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id));
-    } catch (error) {
-      console.error("Error eliminando concepto: ", error);
-    }
+  // 1. Buscamos el nombre del concepto para personalizar el mensaje (opcional)
+  const conceptoObj = state.conceptos.find((c) => c.id === id);
+  const nombre = conceptoObj ? `"${conceptoObj.concepto}"` : "este concepto";
+
+  // 2. Ejecutamos el modal asíncrono
+  const confirmado = await mostrarConfirmacionCustom(
+    `¿Seguro que deseas eliminar ${nombre}? Esta acción no se puede deshacer.`,
+    "⚠️ ELIMINAR CONCEPTO"
+  );
+
+  // 3. Si se hace clic en Cancelar, se detiene
+  if (!confirmado) return;
+
+  // 4. Si se acepta, borra en Firestore
+  try {
+    await deleteDoc(doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", id));
+  } catch (error) {
+    console.error("Error eliminando concepto: ", error);
   }
 }

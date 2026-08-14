@@ -1,9 +1,11 @@
 import { db, obtenerUsuarioActual } from "./firebase-init.js";
+import { mostrarConfirmacionCustom } from "./modal.js"; // Importamos el modal auto-inyectable
 import {
   doc,
   getDoc,
   getDocs,
   setDoc,
+  deleteDoc,
   collection,
   query,
   where,
@@ -79,33 +81,6 @@ function configurarUI(estaCerrada) {
   }
 }
 
-function mostrarConfirmacionCustom(mensaje) {
-  return new Promise((resolve) => {
-    const modal = document.getElementById("custom-confirm-modal");
-    const msgElem = document.getElementById("custom-confirm-message");
-    const btnAceptar = document.getElementById("btn-confirm-accept");
-    const btnCancelar = document.getElementById("btn-confirm-cancel");
-
-    if (!modal || !msgElem) return resolve(false);
-
-    msgElem.textContent = mensaje;
-    modal.classList.remove("hidden");
-
-    const alAceptar = () => finaliza(true);
-    const alCancelar = () => finaliza(false);
-
-    const finaliza = (resultado) => {
-      modal.classList.add("hidden");
-      btnAceptar.removeEventListener("click", alAceptar);
-      btnCancelar.removeEventListener("click", alCancelar);
-      resolve(resultado);
-    };
-
-    btnAceptar.addEventListener("click", alAceptar);
-    btnCancelar.addEventListener("click", alCancelar);
-  });
-}
-
 // --- MOTOR PRINCIPAL ---
 async function ejecutarMotorCalculo(idDoc = periodoActual) {
   try {
@@ -151,11 +126,7 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
       ...doc.data(),
     }));
 
-    // -------------------------------------------------------------------------
-    // ORDENACIÓN DE CONCEPTOS:
-    // 1. Por CLASE (Devengos primero, Bases en medio, Retenciones al final)
-    // 2. Por CÓDIGO DE EMPRESA (0001, 0015, 0203, 0242, 0350...)
-    // -------------------------------------------------------------------------
+    // ORDENACIÓN DE CONCEPTOS
     conceptos.sort((a, b) => {
       const claseA = (a.clase || "").toLowerCase();
       const claseB = (b.clase || "").toLowerCase();
@@ -181,28 +152,23 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
     );
     const preciosResueltos = await Promise.all(promesasPrecios);
 
-    // -------------------------------------------------------------------------
-    // PRIMERA PASADA: Identificar Base A.T., Base C.C. y Base H.E.
-    // -------------------------------------------------------------------------
+    // PRIMERA PASADA
     conceptos.forEach((c, i) => {
       const nombreConcepto = (c.concepto || "").trim().toLowerCase();
       const cant = totales[c.variable_cantidad] || 0;
       const precio = preciosResueltos[i] || 0;
       const subtotalCalculado = cant * precio;
 
-      // Base A.T.
       if (nombreConcepto.includes("base a.t.") || nombreConcepto.includes("base at")) {
         totales.C_S_base_at = subtotalCalculado;
         SISTEMA_VARIABLES.C_S_base_at = subtotalCalculado;
       }
 
-      // Base C.C.
       if (nombreConcepto.includes("base c.c.") || nombreConcepto.includes("base cc")) {
         totales.C_S_base_cc = subtotalCalculado;
         SISTEMA_VARIABLES.C_S_base_cc = subtotalCalculado;
       }
 
-      // Base H.E.
       if (nombreConcepto.includes("base h.e.") || nombreConcepto.includes("base he")) {
         totales.C_S_base_he = subtotalCalculado;
         SISTEMA_VARIABLES.C_S_base_he = subtotalCalculado;
@@ -212,9 +178,7 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
     let bruto = 0, deducciones = 0;
     snapshotNominaActual.items = [];
 
-    // -------------------------------------------------------------------------
-    // SEGUNDA PASADA: Renderizado y cálculo definitivo de la nómina
-    // -------------------------------------------------------------------------
+    // SEGUNDA PASADA
     conceptos.forEach((c, i) => {
       const pago = (c.forma_pago || "Mensual").toLowerCase();
       if (pago === "junio" && mesInt !== 6) return;
@@ -284,7 +248,12 @@ async function ejecutarMotorCalculo(idDoc = periodoActual) {
 
 export async function cerrarNomina(periodo) {
   const periodoFormateado = periodo.replace("_", "/");
-  const confirmado = await mostrarConfirmacionCustom(`¿Cerrar nómina de ${periodoFormateado}? Los datos serán inmutables, aunque cambies datos en el calendario.`);
+  
+  // USO DEL MODAL PERSONALIZADO
+  const confirmado = await mostrarConfirmacionCustom(
+    `¿Cerrar nómina de ${periodoFormateado}? Los datos serán inmutables, aunque cambies datos en el calendario.`,
+    "⚠️ CERRAR NÓMINA"
+  );
   if (!confirmado) return;
 
   try {
@@ -300,6 +269,24 @@ export async function cerrarNomina(periodo) {
     ejecutarMotorCalculo(periodo); 
   } catch (e) {
     console.error("Error al cerrar la nómina:", e);
+  }
+}
+
+// === FUNCIÓN PARA ELIMINAR CONCEPTO CON EL MODAL ===
+export async function eliminarConcepto(idConcepto, nombreConcepto = "este concepto") {
+  // Se sustituye el alert/confirm nativo por el modal interactivo
+  const confirmado = await mostrarConfirmacionCustom(
+    `¿Estás seguro de que deseas eliminar "${nombreConcepto}"? Esta acción no se puede deshacer.`,
+    "⚠️ ELIMINAR CONCEPTO"
+  );
+
+  if (!confirmado) return;
+
+  try {
+    await deleteDoc(doc(db, "usuarios", USUARIO_ID, "ConceptosNomina", idConcepto));
+    ejecutarMotorCalculo(periodoActual); // Recalculamos la vista
+  } catch (e) {
+    console.error("Error al eliminar el concepto:", e);
   }
 }
 

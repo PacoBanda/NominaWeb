@@ -1,4 +1,5 @@
 import { db, obtenerUsuarioActual } from "./firebase-init.js";
+import { mostrarConfirmacionCustom } from "./modal.js";
 import {
   doc,
   setDoc,
@@ -214,7 +215,12 @@ export function abrirEditorDia(
       const usuarioId = await obtenerUsuarioActual();
       if (!usuarioId) return;
 
-      const confirmado = confirm(`¿Deseas eliminar todos los datos del día ${numeroDia}?`);
+      // 👇 Cambiamos confirm() por mostrarConfirmacionCustom con await
+      const confirmado = await mostrarConfirmacionCustom(
+        `¿Deseas eliminar todos los datos introducidos para el día ${numeroDia}?`,
+        "⚠️ ELIMINAR DÍA"
+      );
+      
       if (!confirmado) return;
 
       const copiaMes = JSON.parse(JSON.stringify(datosMesActual || {}));
