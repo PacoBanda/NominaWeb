@@ -4,6 +4,7 @@ import {
     onAuthStateChanged, 
     signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, 
+    sendEmailVerification,
     signOut 
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-auth.js";
 
@@ -12,6 +13,8 @@ import {
     doc, 
     setDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-firestore.js";
+
+import { mostrarAlertaCustom } from "./modal.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyDMW1GAJtKzWWHz9y6SLfXAZDfIYZcAV-g",
@@ -26,13 +29,11 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// Estado para saber si estamos registrando o procesando
 let isRegistering = false;
-let isProcessingSubmit = false; // Flag para evitar que el listener interfiera
+let isProcessingSubmit = false;
 
-// --- CONTROL DE RUTAS SEGURO ---
-onAuthStateChanged(auth, (user) => {
-    // Si estamos guardando los datos en el submit, no redirigir automáticamente aún
+// --- CONTROL DE RUTAS SEGURO Y VERIFICACIÓN DE EMAIL ---
+onAuthStateChanged(auth, async (user) => {
     if (isProcessingSubmit) return;
 
     const isIndex = window.location.pathname.endsWith('index.html') || 
@@ -40,6 +41,16 @@ onAuthStateChanged(auth, (user) => {
                     window.location.pathname.endsWith('.html') === false;
 
     if (user) {
+        await user.reload();
+
+        if (!user.emailVerified) {
+            await signOut(auth);
+            if (!isIndex) {
+                window.location.href = 'index.html';
+            }
+            return;
+        }
+
         if (isIndex) {
             window.location.href = 'navegacion.html';
         }
@@ -87,7 +98,7 @@ const loginForm = document.getElementById('auth-form');
 if (loginForm) {
     loginForm.onsubmit = async (e) => {
         e.preventDefault();
-        isProcessingSubmit = true; // Bloqueamos temporalmente la redirección de onAuthStateChanged
+        isProcessingSubmit = true;
 
         const email = document.getElementById('email').value.trim();
         const password = document.getElementById('password').value;
@@ -99,24 +110,91 @@ if (loginForm) {
                 const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 2. Guardar OBLIGATORIAMENTE el documento base del usuario en Firestore
+                // 2. Guardar el documento del usuario en Firestore
                 await setDoc(doc(db, "usuarios", user.uid), {
                     nombre: nombre || "Usuario sin nombre",
                     email: user.email,
                     creadoEn: new Date()
                 });
 
-                alert("¡Usuario registrado exitosamente!");
+                // 3. Enviar correo de verificación antes de cerrar sesión
+                await sendEmailVerification(user);
+
+                // 4. Cerrar sesión
+                await signOut(auth);
+
+                await mostrarAlertaCustom(
+                    "¡Cuenta registrada! Se ha enviado un correo de verificación a tu email. Confírmalo para poder acceder.",
+                    "✉️ VERIFICA TU CORREO"
+                );
+
+                if (toggleBtn) toggleBtn.click();
+
             } else {
                 // Iniciar sesión
-                await signInWithEmailAndPassword(auth, email, password);
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+
+                await user.reload();
+
+                if (!user.emailVerified) {
+                    const btnReenviar = document.getElementById('resend-email-btn');
+                    if (btnReenviar) btnReenviar.classList.remove('hidden');
+
+                    await mostrarAlertaCustom(
+                        "Tu correo electrónico aún no ha sido verificado. Por favor, revisa tu bandeja de entrada o spam.",
+                        "🚫 ACCESO DENEGADO"
+                    );
+
+                    await signOut(auth);
+                    isProcessingSubmit = false;
+                    return;
+                }
+
+                window.location.href = 'navegacion.html';
             }
-            
-            // 3. Redirigir manualmente una vez que Firestore HAYA TERMINADO
-            window.location.href = 'navegacion.html';
         } catch (err) { 
-            isProcessingSubmit = false; // Si hay error, permitimos que el estado vuelva a la normalidad
-            alert("Error: " + err.message); 
+            await mostrarAlertaCustom(err.message, "❌ ERROR DE ACCESO");
+        } finally {
+            isProcessingSubmit = false;
+        }
+    };
+}
+
+// --- REENVIAR EMAIL DE VERIFICACIÓN ---
+const resendBtn = document.getElementById('resend-email-btn');
+if (resendBtn) {
+    resendBtn.onclick = async () => {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+
+        if (!email || !password) {
+            await mostrarAlertaCustom(
+                "Introduce tu correo y contraseña en el formulario para reenviar el enlace de verificación.",
+                "⚠️ DATOS INCOMPLETOS"
+            );
+            return;
+        }
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            if (user.emailVerified) {
+                await mostrarAlertaCustom(
+                    "Tu correo ya está verificado. Puedes iniciar sesión normalmente.",
+                    "✅ CORREO VERIFICADO"
+                );
+            } else {
+                await sendEmailVerification(user);
+                await mostrarAlertaCustom(
+                    "Se ha reenviado el enlace de verificación a tu correo.",
+                    "✉️ CORREO REENVIADO"
+                );
+            }
+            await signOut(auth);
+        } catch (err) {
+            await mostrarAlertaCustom(err.message, "❌ ERROR AL REENVIAR");
         }
     };
 }
@@ -129,7 +207,7 @@ if (logoutBtn) {
             await signOut(auth);
             window.location.href = 'index.html';
         } catch (err) {
-            alert("Error al cerrar sesión: " + err.message);
+            await mostrarAlertaCustom(err.message, "❌ ERROR");
         }
     };
 }

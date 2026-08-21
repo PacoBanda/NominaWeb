@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Mi Agenda de Trabajo</title>
     <link rel="stylesheet" href="./CSS/login.css" />
+    <link rel="stylesheet" href="./CSS/modal.css" />
   </head>
   <body>
     <div id="app-container">
@@ -43,6 +44,15 @@
           style="background: none; border: none; margin-top: 15px; color: var(--primary-color); cursor: pointer; text-decoration: underline;"
         >
           ¿No tienes cuenta? Regístrate aquí
+        </button>
+
+        <!-- Botón para reenviar verificación si falla el inicio de sesión por no estar verificado -->
+        <button 
+          id="resend-email-btn" 
+          class="hidden"
+          style="background: none; border: none; margin-top: 10px; color: var(--text-sec); cursor: pointer; text-decoration: underline; font-size: 14px;"
+        >
+          ¿No recibiste el correo? Reenviar verificación
         </button>
       </div>
     </div>
